@@ -1698,6 +1698,7 @@ drop.addEventListener('drop', event => {
   void importFiles([...event.dataTransfer.files]);
 });
 render();
+if (new URLSearchParams(location.search).get('demo') === 'medical') $('demo').click();
 </script></body></html>
 
 
