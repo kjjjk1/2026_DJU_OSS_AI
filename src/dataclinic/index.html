@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DataClinic · 정제 의사결정 실험실</title>
+<style>
+:root{color-scheme:light;--ink:#152e32;--muted:#536977;--line:#d2dfe0;--mint:#80e0c8;--teal:#006958;--navy:#103a3a;--paper:#fff;--bg:#f4f7f6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Inter","Malgun Gothic",system-ui,sans-serif;word-break:keep-all;overflow-wrap:anywhere}header{background:white;border-bottom:1px solid var(--line)}.wrap{max-width:1150px;margin:auto;padding:0 30px}.bar,.row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.bar{min-height:74px}.brand{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:800;letter-spacing:-1px}.cross{background:var(--navy);color:var(--mint);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font:800 29px/1 "Inter",sans-serif}.status,.meta,small{font-size:.88rem;color:var(--muted)}.status{display:flex;align-items:center;gap:8px}.dot{width:8px;height:8px;border-radius:50%;background:#11846c}main{padding-bottom:60px!important}.hero{background:var(--navy);color:white;border-radius:20px;margin:26px 0 18px;padding:30px 34px;display:grid;grid-template-columns:1.3fr 1fr;align-items:center;gap:32px}.hero h1{font-size:clamp(1.85rem,4vw,2.7rem);line-height:1.2;letter-spacing:-.065em;margin:0 0 12px}.hero p{margin:0;color:#c5ded7}.hero small{color:#b5d5cd}.hero figure{margin:0;border-left:1px solid #416463;padding-left:30px}.hero figcaption{font-size:.9rem;color:#d1e8e0}.hist{height:65px;display:flex;align-items:flex-end;gap:5px;border-bottom:1px solid #8db4aa;margin:10px 0 4px}.hist i{flex:1;background:var(--mint);border-radius:3px 3px 0 0;min-width:0}.range{display:flex;justify-content:space-between}.panel{padding:24px 26px;margin:16px 0;background:white;border:1px solid var(--line);border-radius:16px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);margin:18px 0 12px;gap:12px}.metric{background:#f1f6f4;padding:12px 16px;border-radius:9px}.metric strong{display:block;font-size:1.48rem;font-variant-numeric:tabular-nums}.metric span{font-size:.88rem;color:var(--muted)}h2{font-size:1.4rem;letter-spacing:-.05em;margin:0}h3{font-size:1.05rem;margin:16px 0 6px}p{margin:.4em 0}.buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap}button,select,.upload{font:inherit;font-size:.92rem;border:1px solid #b9ceca;border-radius:8px;padding:8px 12px;background:white;color:var(--ink);cursor:pointer}.upload,.primary{font-weight:700;background:var(--teal);border-color:var(--teal);color:white}button:hover,.upload:hover{filter:brightness(.94)}button:disabled{opacity:.45;cursor:default}input:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible,.upload:focus-within{outline:3px solid #39a8ba;outline-offset:2px}.sr{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}.fields{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0}.fields label{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:.9rem}select{max-width:100%;appearance:none;padding-right:30px;background:linear-gradient(45deg,transparent 50%,#48706a 50%) right 13px center/5px 5px no-repeat,linear-gradient(135deg,#48706a 50%,transparent 50%) right 9px center/5px 5px no-repeat}table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}th,td{padding:10px 12px;text-align:right;border-bottom:1px solid #e2e9e7;white-space:nowrap}th:first-child,td:first-child{text-align:left}thead{background:#eff5f3;color:#254b45}.scroll{overflow:auto;max-height:350px}summary{cursor:pointer;color:var(--teal);font-size:.92rem;font-weight:650}.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}.split>div{min-width:0}.note{border-left:3px solid #44a38a;background:#f1f7f4;padding:12px 15px;margin-top:12px;font-size:.93rem}.lossrow{display:grid;grid-template-columns:minmax(68px,1fr) 2fr auto;gap:10px;align-items:center;margin:9px 0;font-size:.9rem}.track{height:8px;background:#e4eeeb;border-radius:8px;overflow:hidden}.fill{display:block;height:100%;background:#147d68}details{margin-top:12px}.error{color:#a03524}.result{background:#f2f8f6;border:1px solid #d0e4da;padding:16px;margin-top:15px;border-radius:10px}[hidden]{display:none!important}@media(max-width:740px){.wrap{padding:0 14px}.hero{grid-template-columns:1fr;gap:16px;padding:22px}.hero figure{border:0;padding:0}.hist{height:42px}.panel{padding:18px}.split{grid-template-columns:1fr;gap:8px}.metric{padding:9px}.metrics{gap:6px}.row{align-items:flex-start}.status{font-size:.78rem}.brand{font-size:22px}.fields{gap:8px}}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:20px}.tabs button[aria-pressed=true]{background:var(--navy);color:white}.tabs button{border-radius:20px}.sources{margin-top:14px}.sources a{color:var(--teal)}input[type=text]{font:inherit;max-width:100%;border:1px solid #b9ceca;border-radius:8px;padding:8px}#reason{width:230px}#evidence,#claims{margin-top:12px} .hero{margin-top:14px}.exercise{border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:14px 0;background:#f4f8f6}.exercise h3{margin:0 0 5px}.awaiting-prediction #studyResults,.awaiting-prediction #action,.awaiting-prediction #general:not([hidden]) ~ #aiPanel{display:none!important}.schemaLine{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(90px,.7fr) minmax(110px,1fr);gap:12px;align-items:center;margin:8px 0}.schemaLine small{display:block;font-weight:400}.schemaLine input,.schemaLine select{width:100%}.roleEditor{border-top:1px solid var(--line);padding-top:12px}.modelSets{display:grid;grid-template-columns:1fr 1fr;gap:12px}.modelSets fieldset{min-width:0;border:1px solid var(--line);border-radius:10px}.modelSets label{display:inline-flex;gap:5px;margin:5px 12px 5px 0}.headings{font-size:.85rem;color:var(--muted)}#experimentNav{margin-bottom:14px}@media(max-width:600px){.schemaLine{grid-template-columns:1fr 1fr}.schemaLine strong{grid-column:1/-1}.schemaLine.headings{display:none}.modelSets{grid-template-columns:1fr}}</style>
+</head>
+<body>
+<header><div class="wrap bar"><div class="brand"><span class="cross" aria-hidden="true">+</span>DataClinic</div><span class="status"><i class="dot"></i>내 기기에서 분석 중</span></div></header>
+<main class="wrap"><nav class="tabs" aria-label="실험 선택"><button id="generalTab" aria-pressed="true">CSV 정제 실험실</button><button id="mergeTab" aria-pressed="false">국내 검진코드 병합</button><button id="medicalTab" aria-pressed="false">의료 기록 사례</button></nav><div id="general">
+<section class="hero"><div><h1 id="introTitle">정제 의사결정 실험실</h1><p id="introText">결측치를 처리하면 무엇이 달라질까요?<br>같은 데이터에 세 가지 방법을 적용해 비교해 보세요.</p></div>
+<figure id="generalChart"><figcaption id="chartTitle">관측값 분포</figcaption><div class="hist" id="hist" aria-hidden="true"></div><div class="range"><small id="low"></small><small id="high"></small></div></figure></section>
+<section class="panel"><div class="row"><div><h2>데이터 건강검진</h2><div id="source" class="meta"></div></div><div class="buttons"><button id="public">공공데이터 열기</button><button id="sample">월소득 예시</button><button id="school">교육 예시</button><label class="upload">CSV 열기<input id="upload" class="sr" type="file" accept=".csv,text/csv"></label></div></div>
+<details class="sources"><summary>시연 데이터 안내</summary><p>실제 자료는 미국 CDC NHANES 2017–2018 신체계측과 인구통계 파일을 SEQN으로 일대일 병합한 뒤, 만 20세 이상을 SEQN 순으로 정렬해 처음 250행을 추출했습니다. 연령대·BMI·허리둘레만 포함합니다. 표본 가중치를 적용하지 않은 정제 시연용 발췌입니다.</p><p><a href="https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/BMX_J.htm" target="_blank" rel="noreferrer">CDC 신체계측 코드북</a> · <a href="https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/DEMO_J.htm" target="_blank" rel="noreferrer">인구통계 코드북</a></p><button id="publicCSV">시연용 원본 CSV 저장</button><p class="meta">월소득 예시와 의료 기록 사례에는 가상 데이터를 사용합니다.</p></details><p role="alert" class="error" id="error"></p><div class="metrics" id="metrics"></div>
+<details class="roleEditor" id="schema"><summary>열 역할과 결측 표기 설정</summary><p class="meta">원본 예시를 보고 열의 역할을 확인하세요. 빈칸은 항상 결측으로 읽습니다. 추가 표기는 쉼표로 구분하고, 실제 값으로 유지할 표기는 입력란에서 지우세요.</p><div class="schemaLine headings"><strong>열 · 원본 예시</strong><strong>분석 역할</strong><strong>추가 결측 표기</strong></div><div id="schemaRows"></div><div class="fields"><button class="primary" id="applySchema">열 설정 적용</button><span id="schemaMessage" role="status"></span></div></details>
+<nav class="tabs" id="experimentNav" aria-label="분석 목적"><button id="view-clean">결측치 예측 실습</button><button id="view-rank">집단 순위 비교</button><button id="view-model">예측 변수 비교</button></nav><details><summary>원본 미리보기와 열별 결측치</summary><h3>처음 5행</h3><div class="scroll" id="preview"></div><h3>열별 결측치</h3><div class="scroll" id="profile"></div><small>결측치는 현재 열별 설정으로 집계하며 미리보기에는 원본값이 표시됩니다. 중복 행 수는 모든 셀 값이 같은 행에서 첫 행을 제외한 개수입니다.</small></details></section>
+<section class="panel" id="section-clean"><h2>정제 방법 비교</h2><div id="empty" hidden></div><div id="lab">
+<div class="fields"><label>정제할 수치 열 <select id="target"></select></label><label>비교할 집단 <select id="group"></select></label></div>
+<div class="fields"><label>실험 방식 <select id="studyMode"><option value="predict">먼저 예측하기</option><option value="free">자유 비교</option></select></label><label>분석 목적 <select id="studyGoal"><option value="spread">전체 평균과 분포 설명</option><option value="groups">집단별 비교</option></select></label></div>
+<section id="studyBox" class="exercise"><h3 id="studyQuestion"></h3><p class="meta" id="studyHint"></p>
+<div class="fields" id="studyControls"><label>내 예측 <select id="studyChoice"></select></label><button class="primary" id="studyReveal" disabled>실험 결과 확인</button></div>
+<div id="studyFeedback" class="note" role="status" hidden></div></section>
+<div id="studyResults"><div class="scroll" id="comparison"></div><small>원본 통계량은 관측값으로 계산합니다. 행 삭제 후에는 분석 대상이 달라집니다. 표준편차는 표본 기준이며 관측값이 2개 이상일 때 계산합니다.</small>
+<div class="split"><div><h3>행 삭제 시 집단별 손실</h3><div id="loss"></div></div><div><h3>결정 전 확인할 점</h3><div class="note" id="risk"></div></div></div></div>
+</div></section>
+<section class="panel" id="action"><h2>선택한 방법 적용</h2><p class="meta">선택한 열의 결측치만 처리한 새 CSV를 만듭니다.</p><div class="fields"><label>정제 방법 <select id="method"></select></label><label>선택 이유 (선택) <input id="reason" type="text" placeholder="이 방법을 고른 이유"></label><button class="primary" id="apply" disabled>정제 적용</button></div>
+<div class="result" id="result" hidden><div class="row"><strong id="done" role="status"></strong><div class="buttons"><button class="primary" id="download">정제 CSV 저장</button><button id="report">판단 기록 저장</button></div></div><details><summary>정제 결과 미리보기</summary><div class="scroll" id="after"></div></details></div></section>
+<section class="panel" id="section-rank" hidden><h2>처리 기준에 따라 순위가 바뀔까요?</h2><p class="meta">기존 기준은 결측을 제외한 집단별 평균입니다. 아래 기준을 선택하면 같은 원본으로 다시 계산합니다.</p><div class="fields"><label>집단 <select id="rankGroup"></select></label><label>비교할 측정값 <select id="rankValue"></select></label><label>결측 처리 기준 <select id="rankPolicy"><option value="mean">전체 관측 평균으로 대체</option><option value="median">전체 관측 중앙값으로 대체</option><option value="zero">결측을 0으로 가정</option></select></label></div><p class="note" id="rankMessage" role="status"></p><div class="scroll" id="rankResult"></div><small>높은 평균부터 순위를 매깁니다. 동점은 공동 순위입니다. 0으로 처리한 결과는 선택한 가정에 따른 모의 결과입니다.</small></section>
+<section class="panel" id="section-model" hidden><h2>어떤 변수를 쓰면 예측 오차가 달라질까요?</h2><div class="fields"><label>예측할 측정값 <select id="modelTarget"></select></label></div><div class="modelSets"><fieldset><legend>조합 A의 입력</legend><div id="featuresA"></div></fieldset><fieldset><legend>조합 B의 입력</legend><div id="featuresB"></div></fieldset></div><div class="fields"><button class="primary" id="modelRun">같은 데이터로 두 조합 비교</button></div><p id="modelNotice" role="status"></p><div class="scroll" id="modelResult"></div><details><summary>오차와 비교 기준 읽기</summary><p>평균 절대오차(MAE)는 예측이 실제 목표값에서 평균적으로 얼마나 떨어졌는지 나타냅니다. 단위는 목표 열과 같습니다. 각 행은 고정된 5개 그룹 중 한 그룹에 배정되며, 자신을 학습에 쓰지 않은 모델로 한 번 평가됩니다. 목표가 기록된 동일한 행을 세 모델 모두에 사용합니다.</p><p>릿지 선형회귀(벌점 1)를 사용합니다. 측정값의 표준화와 결측 평균 대체, 집단 범주 인코딩은 각 학습 그룹에서만 수행합니다. 식별자·날짜·기타 열은 입력에서 제외하며 범주가 30개 이하인 집단만 선택할 수 있습니다. 반복 측정이나 시계열 자료는 별도의 분할 설계가 필요합니다. 오차 차이는 이 표본에서의 예측 결과입니다.</p></details></section></div><section id="medical" hidden><section class="hero"><div><h1>보고서 문장 재검증</h1><p>사망 기록 한 행이 추가되면 기존 보고서의 어느 문장을 다시 확인해야 할까요?</p></div><div><small>회의 아이디어 체험 · 합성 의료 기록</small><p>환자 목록, 사건 기록, 코드표를 연결한 예시입니다. 모든 번호와 사건은 가상입니다.</p></div></section>
+<section class="panel"><div class="row"><div><h2>과거 기록 업데이트</h2><p class="meta">가상 환자 P-02의 사망일이 3일 뒤 날짜로 한 번 더 들어옵니다.</p></div><button class="primary" id="toggleEvent">기록 1행 추가</button></div><div class="note" id="medRisk" role="status"></div></section>
+<section class="panel"><h2>영향받은 보고서 문장</h2><p class="meta">미리 지표와 연결한 문장을 원본과 현재 기록에서 각각 계산합니다.</p><div class="scroll" id="claims"></div></section>
+<section class="panel"><h2>근거 행 추적</h2><p class="meta">사건 파일의 환자키를 환자 목록에, 사건 코드를 코드표에 연결한 결과입니다.</p><div class="scroll" id="evidence"></div><details><summary>원본 파일 세 개 확인하기</summary><h3>patients.csv</h3><div class="scroll" id="patients"></div><h3>events.csv</h3><div class="scroll" id="events"></div><h3>codes.csv</h3><div class="scroll" id="codes"></div></details></section></section>
+<section id="merge" hidden>
+<section class="hero"><div><h1>국내 검진코드 병합</h1><p>검진 기록의 코드에 공단의 한글 검사항목명을 붙입니다.</p></div><div><small>국민건강보험공단 · 2024년 7월 31일 기준</small><p>공식 코드표 <strong id="dictionaryCount"></strong>개 항목</p></div></section>
+<section class="panel"><div class="row"><div><h2>검진 기록 연결</h2><p id="mergeSource" class="meta"></p></div><div class="buttons"><button id="mergeSample">가상 기록 열기</button><label class="upload">검진 CSV 열기<input class="sr" type="file" id="mergeFile" accept=".csv,text/csv"></label></div></div>
+<p role="alert" class="error" id="mergeError"></p><div class="fields"><label>검진 코드 열 <select id="codeColumn"></select></label></div>
+<div id="mergeMetrics" class="metrics"></div><div class="scroll" id="joinPreview"></div><p id="mergeLimit" class="meta"></p><div class="buttons"><button class="primary" id="mergeDownload">병합 CSV 저장</button><button id="dictionaryDownload">공식 코드표 CSV 저장</button></div>
+<p class="meta sources">공식 명칭은 <a href="https://www.data.go.kr/data/15133104/fileData.do" target="_blank" rel="noreferrer">건강검진검사항목기본</a>에서 가져옵니다. 검진 기록은 예시 또는 업로드한 파일을 사용합니다. 코드 앞뒤 공백을 제거한 뒤 대소문자와 앞자리 0을 유지해 대조합니다.</p>
+</section></section>
+<section class="panel" id="aiPanel"><h2>결과 설명</h2><h3>계산 기반 설명</h3><p class="note" id="ruleExplanation"></p>
+<div class="fields"><button class="primary" id="askGemini" disabled>집계값을 보내 Gemini 설명 받기</button><small id="connection"></small></div>
+<details><summary>Gemini에 전송할 집계값 확인</summary><pre id="sharing"></pre></details>
+<p id="aiMessage" role="status"></p><div id="aiText"></div></section>
+</main><script src="experiments.js"></script><script src="models.js"></script><script>
+'use strict';
+const $ = id => document.getElementById(id);
+const missing = value => value.trim() === '';
+const numeric = value => /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim()) && Number.isFinite(Number(value));
+const format = value => Number.isFinite(value) ? value.toLocaleString('ko-KR',{maximumFractionDigits:2}) : '—';
+const names = {original:'원본', drop:'행 삭제', mean:'평균 대체', median:'중앙값 대체'};
+const demo = '고용형태,월소득(만원),응답번호\n' +
+ [240,245,250,260,270,280,285,300,320,340,360,420,510,710,950,null,175,190,240,null,null,null,null,null]
+ .map((x,i)=>[i<16?'정규직':'계약직',x,'S'+(i+1)].join(',')).join('\n');
+function parseCSV(text){
+  const grid=[]; let row=[],field='',quoted=false,closed=false,touched=false;
+  text=text.replace(/^\uFEFF/,'');
+  function endRow(){
+    if(touched || row.length || field.length)grid.push([...row,field]);
+    row=[];field='';closed=false;touched=false;
+  }
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(quoted){
+      if(c==='"' && text[i+1]==='"'){field+='"';i++;}
+      else if(c==='"'){quoted=false;closed=true;}else field+=c;
+    }else if(c===','){row.push(field);field='';closed=false;touched=true;}
+    else if(c==='\r'||c==='\n'){if(c==='\r' && text[i+1]==='\n')i++;endRow();}
+    else if(c==='"' && !field && !closed){quoted=true;touched=true;}
+    else if(closed||c==='"'){throw Error('따옴표 위치가 올바른 CSV인지 확인해 주세요.');}
+    else{field+=c;touched=true;}
+  }
+  if(quoted)throw Error('CSV에 닫히지 않은 따옴표가 있습니다.');
+  endRow();
+  if(grid.length<2)throw Error('열 이름과 데이터가 한 행 이상 필요합니다.');
+  const headers=grid.shift().map(x=>x.trim());
+  if(headers.some(x=>!x)||new Set(headers).size!==headers.length)throw Error('열 이름은 비어 있거나 중복될 수 없습니다.');
+  if(grid.some(row=>row.length!==headers.length))throw Error('열 개수가 다른 행이 있습니다. 쉼표와 따옴표를 확인해 주세요.');
+  return {headers,rows:grid};
+}
+function csv(headers,rows){
+  return [headers,...rows].map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+}
+function describe(rows,col){
+  const values=rows.map(r=>r[col]).filter(x=>!missing(x)).map(Number).sort((a,b)=>a-b);
+  const n=values.length;
+  const quantile=p=>{if(!n)return null;const pos=(n-1)*p,i=Math.floor(pos);return values[i]+(pos-i)*(values[Math.ceil(pos)]-values[i]);};
+  const mean=n?values.reduce((sum,v)=>sum+v/n,0):null;
+  return {count:rows.length,missing:rows.length-n,mean,median:quantile(.5),q1:quantile(.25),q3:quantile(.75),sd:n>1?Math.sqrt(values.reduce((s,v)=>s+(v-mean)**2,0)/(n-1)):null,values};
+}
+function simulate(rows,col,method,base){
+  if(method==='drop')return rows.filter(r=>!missing(r[col])).map(r=>r.slice());
+  return rows.map(r=>{const copy=r.slice();if(missing(copy[col]))copy[col]=String(base[method]);return copy;});
+}
+function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;}
+function table(id,columns,records){
+ const t=el('table'),head=t.createTHead().insertRow();columns.forEach(c=>head.append(el('th',c)));
+ const b=t.createTBody();for(const row of records){const tr=b.insertRow();for(const cell of row)tr.insertCell().textContent=cell===''?'(빈칸)':String(cell);}
+ $(id).replaceChildren(t);
+}
+function options(id,items){$(id).replaceChildren(...items.map(([v,t])=>new Option(t,v)));}
+function save(name,content,type){
+ const url=URL.createObjectURL(new Blob([content],{type})),a=el('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+let data,filename,base,stats={},committed,readId=0;
+function clearApproval(){committed=null;$('result').hidden=true;$('apply').disabled=!$('method').value;}
+function metric(label,value){const d=el('div');d.className='metric';d.append(el('span',label),el('strong',value));return d;}
+function loadData(text,name,source,uploaded=false){
+ const parsed=parseCSV(text);
+ configureSource(parsed,uploaded);
+ filename=name;$('source').textContent=source;
+ refreshSource();
+}
+function refreshSource(){
+ data=normalizedSource();
+ const {rows,headers}=data;const numerical=[],groups=[],profile=[];
+ headers.forEach((h,i)=>{
+   const observed=rows.map(r=>r[i]).filter(v=>!missing(v)), absent=rows.length-observed.length;
+   const isNumber=observed.length>0 && observed.every(numeric);
+   if(roles[i].role==='measure' && isNumber && absent)numerical.push([i,h]);
+   if(roles[i].role==='group' && observed.length)groups.push([i,h]);
+   profile.push([h,roleLabels[roles[i].role],absent,format(100*absent/rows.length)+'%']);
+ });
+ $('error').textContent='';
+ $('metrics').replaceChildren(metric('원본 데이터',format(rows.length)+'행 · '+headers.length+'열'),metric('결측 셀',format(profile.reduce((s,p)=>s+p[2],0))+'개'),metric('중복 행',format(rows.length-new Set(rawSource.rows.map(r=>JSON.stringify(r))).size)+'행'));
+ table('preview',headers,rawSource.rows.slice(0,5));table('profile',['열','값 유형','결측 수','결측률'],profile);
+ options('target',numerical);options('group',[['','전체'],...groups]);if(groups.length)$('group').value=String(groups[0][0]);
+ $('empty').hidden=!!numerical.length;$('empty').textContent='관측값과 결측치가 함께 있는 수치 열이 없습니다. 위에서 열별 진단을 확인할 수 있습니다.';
+ $('lab').hidden=$('action').hidden=!numerical.length;options('method',[['','방법 선택'],...Object.entries(names).slice(1)]);clearApproval();
+ if(numerical.length)compare();else{document.dispatchEvent(new Event('summarychange'));$('hist').replaceChildren();$('chartTitle').textContent='비교 가능한 수치 열 없음';$('low').textContent=$('high').textContent='';}
+ prepareExperiments();
+}
+function compare(){
+ const col=Number($('target').value),{rows}=data;base=describe(rows,col);stats={original:base};
+ for(const key of ['drop','mean','median'])stats[key]=describe(simulate(rows,col,key,base),col);
+ const properties=[['정제 후 행 수','count'],['데이터 유지율','retention'],['선택 열 결측률','na'],['평균','mean'],['중앙값','median'],['표준편차','sd'],['하위 25% 값','q1'],['상위 25% 값','q3']];
+ table('comparison',['지표',...Object.values(names)],properties.map(([name,key])=>[name,...Object.values(stats).map(s=>key==='retention'?format(100*s.count/rows.length)+'%':key==='na'?format(100*s.missing/s.count)+'%':format(s[key]))]));
+ $('risk').textContent='행 삭제 시 '+base.missing+'행('+format(100*base.missing/rows.length)+'%)이 빠집니다. '+(base.sd===null?'관측값이 한 개라 원본 표준편차를 계산할 수 없습니다.':'평균 대체 시 표준편차는 '+format(base.sd)+'에서 '+format(stats.mean.sd)+'로 바뀝니다.')+' 결측의 원인은 자료만으로 확정하기 어렵습니다.';
+ $('method').value='';$('reason').value='';clearApproval();showLoss();histogram();document.dispatchEvent(new Event('summarychange'));
+}
+function histogram(){
+ const method=$('method').value||'original',values=stats[method].values;
+ const min=base.values[0],max=base.values[base.values.length-1],bins=Array(12).fill(0);
+ values.forEach(v=>bins[max===min?0:Math.min(11,Math.floor(12*(v-min)/(max-min)))]++);
+ const peak=Math.max(...bins,1);$('hist').replaceChildren(...bins.map(n=>{const bar=el('i');bar.style.height=100*n/peak+'%';bar.title=n+'개';return bar;}));
+ $('low').textContent=format(min);$('high').textContent=format(max);$('chartTitle').textContent=data.headers[Number($('target').value)]+' 분포 · '+names[method]+' · 원본값 '+base.values.length+'개'+(['mean','median'].includes(method)?' + 대체값 '+base.missing+'개':'');
+}
+function lossCounts(){
+ const group=$('group').value,col=Number($('target').value),counts=new Map();
+ for(const row of data.rows){const label=group===''?'전체':row[group].trim()||'(빈칸)';const c=counts.get(label)||[0,0];c[0]++;if(missing(row[col]))c[1]++;counts.set(label,c);}
+ return counts;
+}
+function showLoss(){
+ const counts=lossCounts();
+ $('loss').replaceChildren(...[...counts].sort((a,b)=>b[1][1]/b[1][0]-a[1][1]/a[1][0]).map(([name,[total,loss]])=>{
+ const line=el('div');line.className='lossrow';const track=el('span');track.className='track';const bar=el('i');bar.className='fill';bar.style.width=(100*loss/total)+'%';track.append(bar);
+ line.append(el('span',name),track,el('span',loss+'/'+total+'행 · '+format(100*loss/total)+'%'));return line;}));
+}
+$('sample').onclick=()=>{readId++;loadData(demo,'income_sample','가상 예시 · 고용형태별 월소득 조사');};
+$('upload').onchange=async event=>{
+ const file=event.target.files[0];if(!file)return;const ticket=++readId;
+ try{const bytes=await file.arrayBuffer();let text;
+ try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{text=new TextDecoder('euc-kr',{fatal:true}).decode(bytes);}
+ if(ticket===readId)loadData(text,file.name.replace(/\.csv$/i,''),file.name+' · 내 CSV',true);}
+ catch(e){if(ticket===readId)$('error').textContent='파일을 열지 못했습니다. '+e.message;}finally{if(ticket===readId)event.target.value='';}
+};
+$('target').onchange=compare;$('group').onchange=showLoss;
+$('method').onchange=()=>{clearApproval();histogram();};
+$('apply').onclick=()=>{const col=Number($('target').value),method=$('method').value;if(!method)return;
+ const output=cleanedOutput(col,method);const rows=output.rows;committed={...output,method,col,reason:$('reason').value.trim()};
+ $('done').textContent=names[method]+' 적용 완료 · '+rows.length+'행 · '+base.missing+'행 처리';table('after',committed.headers,rows.slice(0,5));$('result').hidden=false;};
+$('download').onclick=exportCleaned;
+$('report').onclick=()=>{if(!committed)return;const {col,method,reason}=committed;
+ const metrics=Object.fromEntries(Object.entries(stats).map(([k,{values,...summary}])=>[k,summary]));
+ save(filename+'_판단기록.json',JSON.stringify({source:filename,column:data.headers[col],missingTokens:roles[col].tokens,observed:base.values.length,selected:names[method],reason,affectedRows:base.missing,metrics},null,2),'application/json');};
+
+const patients=parseCSV('환자키,표시키\na12,P-01\nb42,P-02\nc18,P-03');
+const codes=parseCSV('코드,표시명\nD,사망 기록\nV,방문 기록');
+const events=parseCSV('행ID,환자키,코드,사건일\nE01,a12,D,2024-03-01\nE02,b42,D,2024-03-10\nE03,c18,V,2024-03-11');
+const added=['E04','b42','D','2024-03-13'];let newer=false;
+function review(records){
+ const groups=new Map();
+ for(const [id,key,code,date] of records){
+   if(code!=='D')continue;
+   if(!groups.has(key))groups.set(key,new Set());
+   groups.get(key).add(date);
+ }
+ return [groups.size,[...groups.values()].filter(d=>d.size===1).length,[...groups.values()].filter(d=>d.size>1).length];
+}
+function medical(){
+ const current=newer?[...events.rows,added]:events.rows,previous=review(events.rows),now=review(current);
+ const sentences=[v=>'사망 기록이 있는 환자는 '+v+'명이다.',v=>'사망일이 한 날짜로 기록된 환자는 '+v+'명이다.',v=>'서로 다른 사망일이 기록된 환자는 '+v+'명이다.'];
+ const labels=new Map(patients.rows),dictionary=new Map(codes.rows);
+ table('claims',['기존 보고서','현재 계산 결과','검토 상태'],sentences.map((make,i)=>[make(previous[i]),make(now[i]),previous[i]===now[i]?'값 유지':'수정 검토']));
+ table('evidence',['출처 행','가상 환자','코드명','사건일','상태'],current.map(([id,key,code,date])=>[id,labels.get(key),dictionary.get(code),date,newer&&key===added[1]&&code==='D'?'날짜 충돌 · 원자료 확인':'기록 유지']));
+ table('patients',patients.headers,patients.rows);table('events',events.headers,current);table('codes',codes.headers,codes.rows);
+ $('medRisk').textContent=newer?'P-02의 E02와 E04에 3월 10일과 3월 13일이 각각 기록되어 있습니다. 두 행을 보존하고 실제 사건일과 입력 경위를 확인하도록 표시했습니다. 사망 기록이 있는 환자 수는 그대로입니다.':'현재 두 환자에게 각각 하나의 사망일이 기록되어 있습니다. 새 기록을 추가해 보고서의 변화를 확인해 보세요.';
+ $('toggleEvent').textContent=newer?'원본 기록으로 복원':'기록 1행 추가';
+}
+$('toggleEvent').onclick=()=>{newer=!newer;medical();document.dispatchEvent(new Event('summarychange'));};
+$('reason').oninput=clearApproval;
+const publicData="연령대,BMI(kg/m²),허리둘레(cm)\n60+,31.7,101.8\n60+,23.7,88.2\n60+,38.9,113.0\n40–59,21.3,86.6\n60+,23.5,99.7\n40–59,39.9,118.4\n60+,22.5,89.7\n60+,30.7,99.6\n20–39,24.5,86.2\n40–59,22.0,77.5\n60+,35.9,113.2\n60+,23.8,89.7\n60+,22.4,82.6\n60+,31.1,105.6\n60+,23.9,92.1\n40–59,33.4,118.4\n40–59,27.6,101.5\n40–59,28.6,96.3\n20–39,27.6,101.7\n60+,21.3,81.5\n40–59,35.1,104.6\n20–39,33.7,102.7\n60+,30.6,114.6\n60+,33.9,115.0\n60+,22.5,93.7\n20–39,24.8,74.4\n60+,25.5,88.6\n60+,33.4,107.0\n20–39,29.4,94.2\n60+,29.2,102.1\n60+,34.9,116.4\n40–59,30.8,101.8\n60+,29.1,103.7\n40–59,37.7,103.8\n40–59,29.0,102.5\n60+,27.1,99.8\n40–59,25.5,94.1\n20–39,27.1,87.0\n60+,31.9,106.5\n60+,25.7,96.2\n40–59,26.0,95.3\n40–59,30.7,110.4\n60+,24.1,92.2\n40–59,25.9,90.0\n40–59,25.9,87.5\n20–39,22.2,75.6\n60+,,\n40–59,33.5,104.4\n20–39,25.4,\n20–39,24.0,76.4\n20–39,24.3,82.0\n60+,30.7,116.5\n60+,39.3,125.5\n20–39,23.6,79.9\n20–39,36.9,110.5\n20–39,18.9,66.4\n60+,23.9,85.0\n60+,15.7,65.9\n60+,31.2,121.9\n40–59,32.0,115.6\n60+,28.5,107.3\n40–59,22.8,77.1\n60+,22.7,87.8\n40–59,24.7,97.3\n60+,33.9,108.7\n40–59,28.4,109.8\n20–39,29.5,90.9\n60+,31.1,113.1\n40–59,43.2,115.9\n40–59,27.8,90.7\n20–39,28.0,93.0\n60+,,\n40–59,24.3,89.3\n60+,27.9,89.9\n40–59,33.4,104.3\n40–59,28.4,87.4\n60+,30.5,113.9\n60+,20.0,75.6\n20–39,31.7,96.8\n60+,32.2,117.7\n60+,25.3,100.2\n60+,27.0,93.6\n40–59,36.5,125.7\n20–39,39.1,117.4\n40–59,30.1,107.2\n40–59,24.0,86.2\n40–59,32.8,108.3\n40–59,21.0,75.0\n20–39,24.8,89.9\n20–39,19.8,68.0\n40–59,40.9,111.1\n60+,29.0,110.5\n40–59,22.7,84.4\n60+,27.0,89.0\n60+,31.2,99.0\n40–59,27.2,94.6\n40–59,26.0,\n60+,35.6,117.6\n60+,42.8,144.1\n60+,22.5,\n60+,31.6,113.5\n40–59,31.6,122.1\n20–39,22.0,85.7\n60+,35.4,122.3\n60+,22.9,93.6\n20–39,19.0,72.0\n40–59,21.4,80.9\n20–39,24.9,87.3\n60+,24.7,98.2\n40–59,24.1,90.5\n20–39,42.2,130.2\n60+,25.8,100.0\n20–39,21.3,80.6\n20–39,23.8,83.0\n40–59,44.6,127.3\n60+,35.9,119.3\n40–59,28.2,102.7\n60+,27.8,101.7\n40–59,34.1,123.6\n60+,30.0,112.1\n40–59,30.9,105.5\n20–39,27.5,92.4\n60+,32.2,111.4\n20–39,29.1,100.1\n40–59,26.7,91.6\n20–39,27.1,91.3\n40–59,24.8,88.0\n20–39,66.2,143.5\n40–59,24.8,96.9\n40–59,34.6,115.1\n20–39,24.3,85.7\n20–39,24.7,80.5\n20–39,30.8,118.0\n60+,20.9,76.7\n40–59,30.3,106.8\n60+,25.6,97.0\n20–39,36.1,130.2\n40–59,24.5,88.1\n20–39,27.0,102.6\n60+,29.8,114.2\n20–39,35.2,113.0\n40–59,31.3,106.5\n20–39,,\n20–39,32.6,113.5\n40–59,28.8,91.7\n40–59,24.8,88.0\n40–59,28.3,92.7\n40–59,34.0,110.5\n60+,23.2,78.4\n20–39,21.7,81.1\n40–59,25.7,91.0\n40–59,24.6,90.5\n20–39,34.9,101.9\n20–39,37.8,117.2\n20–39,40.2,122.0\n20–39,23.1,81.6\n60+,,\n40–59,29.1,97.5\n60+,25.5,90.6\n60+,41.3,132.6\n60+,32.9,115.2\n40–59,28.9,100.4\n20–39,22.6,78.0\n40–59,26.1,98.9\n20–39,22.4,\n20–39,25.1,86.7\n40–59,38.2,114.7\n20–39,29.6,107.7\n40–59,29.3,110.7\n40–59,27.2,97.5\n60+,30.0,\n40–59,21.2,87.6\n20–39,19.2,76.7\n40–59,26.8,93.4\n40–59,20.5,77.9\n60+,32.6,97.0\n20–39,31.7,103.0\n60+,26.9,94.8\n20–39,39.2,119.3\n20–39,18.3,72.5\n20–39,21.4,80.5\n60+,37.3,109.3\n20–39,20.3,78.6\n20–39,24.9,81.5\n20–39,40.8,107.1\n60+,25.6,97.7\n20–39,30.1,101.6\n60+,23.9,84.7\n40–59,34.7,115.2\n60+,26.1,105.4\n20–39,25.2,92.5\n40–59,22.4,88.0\n20–39,26.2,91.6\n60+,21.5,89.3\n40–59,31.8,110.0\n60+,26.4,91.7\n20–39,34.5,103.0\n60+,25.6,\n20–39,28.3,91.5\n20–39,21.9,82.8\n40–59,24.9,85.8\n40–59,28.8,107.2\n60+,25.9,100.1\n40–59,29.2,103.0\n40–59,31.8,102.3\n40–59,26.4,98.9\n40–59,30.3,103.1\n60+,29.6,100.7\n20–39,32.1,108.1\n60+,22.5,79.6\n20–39,23.5,84.3\n60+,22.2,92.8\n20–39,21.8,73.3\n60+,26.1,99.0\n40–59,28.7,101.1\n40–59,35.6,109.2\n60+,21.6,85.3\n60+,58.7,125.2\n40–59,27.3,97.5\n60+,29.1,102.2\n60+,37.5,113.6\n40–59,30.4,\n60+,20.7,75.8\n60+,32.2,106.0\n60+,44.8,131.2\n40–59,31.1,104.2\n40–59,41.0,138.3\n20–39,32.9,104.9\n60+,27.4,91.6\n40–59,35.8,112.8\n60+,28.2,104.4\n60+,31.3,115.3\n20–39,26.5,\n60+,34.9,120.0\n20–39,20.6,78.5\n60+,22.3,91.1\n60+,24.7,95.0\n60+,22.3,78.0\n60+,29.0,94.7\n60+,25.2,103.1\n40–59,27.1,93.7\n20–39,34.4,116.6\n60+,29.0,103.9\n60+,26.7,102.8\n60+,35.7,125.6\n20–39,30.3,96.8\n20–39,34.5,107.9\n60+,29.7,89.5\n40–59,28.0,97.1\n60+,26.4,94.3";
+$('public').onclick=()=>{readId++;loadData(publicData,'NHANES_2017_2018_성인250','실제 공개자료 · CDC NHANES 2017–2018 · 성인 250명 발췌');$('target').value='2';compare();};
+$('publicCSV').onclick=()=>save('NHANES_성인250.csv','\uFEFF'+publicData,'text/csv;charset=utf-8');
+$('applySchema').onclick=commitSchema;
+$('schemaRows').oninput=$('schemaRows').onchange=()=>{setupConfirmed=false;switchExperiment(currentExperiment);$('schemaMessage').textContent='변경한 열 설정을 적용하면 결과가 다시 계산됩니다.';};
+for(const key of ['clean','rank','model']) $('view-'+key).onclick=()=>switchExperiment(key);
+for(const id of ['rankValue','rankGroup','rankPolicy']) $(id).onchange=updateRank;
+$('modelTarget').onchange=resetFeatures;
+for(const id of ['featuresA','featuresB']) $(id).onchange=clearModel;
+$('modelRun').onclick=compareModels;
+$('school').onclick=()=>{readId++;currentExperiment='rank';loadData(schoolCsv,'교육_가상성적','가상 교육 자료 · 반별 시험점수');$('rankPolicy').value='zero';updateRank();};
+$('public').click();medical();
+</script><script src="nhis-codes.js"></script><script src="integration.js"></script><script>
+// 실험 결과와 예측을 같은 데이터 및 열에 연결한다.
+let exercise = null;
+let studyData = data;
+let studyColumn = $('target').value;
+
+function makeExercise() {
+  const target = data.headers[Number($('target').value)];
+  if ($('studyGoal').value === 'groups') {
+    const groups = [...lossCounts()].sort((a,b) => b[1][1]/b[1][0] - a[1][1]/a[1][0]);
+    if (groups.length < 2) return {
+      question: '집단별 손실률을 비교하려면 두 집단 이상이 필요합니다.',
+      hint: '비교할 집단 열을 바꾸거나 월소득 예시를 열어 보세요. 자유 비교에서는 전체 통계량을 확인할 수 있습니다.'
+    };
+    const [[first, [n1, lost1]]] = groups;
+    const [last, [n2, lost2]] = groups[groups.length-1];
+    const equal = lost1*n2 === lost2*n1;
+    const rate = (lost,n) => lost+' / '+n+'행 ('+format(100*lost/n)+'%)';
+    return {
+      question: target+' 결측 행을 삭제하면 모든 집단에서 같은 비율로 행이 빠질까요?',
+      hint: '각 집단에서 삭제되는 행 수를 그 집단의 원래 행 수로 나누어 비교합니다.',
+      choices:[['equal','같은 비율이다'],['different','서로 다른 비율이 있다']],
+      answer: equal ? 'equal' : 'different',
+      explanation: equal ? '모든 집단의 손실률이 같습니다. '+first+' 집단은 '+rate(lost1,n1)+'가 빠집니다. 이 결과는 선택한 집단 구분에 대한 비교입니다.'
+        : first+' 집단에서는 '+rate(lost1,n1)+', '+last+' 집단에서는 '+rate(lost2,n2)+'가 빠집니다. 손실률이 달라서 정제 후 집단의 구성 비율도 달라집니다.'
+    };
+  }
+  const before = base.sd, after = stats.mean.sd;
+  const printable = n => Number(n.toPrecision(6)).toLocaleString('ko-KR',{maximumSignificantDigits:6});
+  const unavailable = !Number.isFinite(before) || !Number.isFinite(after);
+  const constant = base.values[0] === base.values[base.values.length-1];
+  const answer = unavailable ? 'unknown' : constant || before === after ? 'same' : after < before ? 'lower' : 'higher';
+  return {
+    question: target+'의 빈칸을 평균으로 채우면 표준편차는 어떻게 될까요?',
+    hint:'표준편차는 값들이 평균 주위에 얼마나 퍼져 있는지 나타냅니다. 원본은 관측된 값으로 계산합니다.',
+    choices:[['lower','작아진다'],['same','같다'],['higher','커진다'],['unknown','비교할 수 없다']],
+    answer,
+    explanation: unavailable ? '원본 또는 대체 후의 표본 표준편차를 계산할 수 없어 비교할 수 없습니다. 표본 표준편차에는 관측값이 최소 두 개 필요합니다.'
+      : constant ? '원래 관측값이 모두 같아서 평균으로 채워도 표준편차는 0입니다.'
+      : '표본 표준편차가 '+printable(before)+'에서 '+printable(after)+'로 바뀝니다. 평균값을 추가하면 평균으로부터의 편차가 0인 관측값이 늘어납니다. 채운 값은 실제 측정값과 구분해서 해석하세요.'
+  };
+}
+
+function resetStudy() {
+  studyData = data;
+  studyColumn = $('target').value;
+  const enabled = !$('lab').hidden && $('studyMode').value === 'predict';
+  $('studyBox').hidden = $('lab').hidden;
+  $('studyFeedback').hidden = true;
+  $('studyFeedback').textContent = '';
+  $('studyControls').hidden = !enabled;
+  $('studyReveal').disabled = true;
+  document.body.classList.toggle('awaiting-prediction',enabled);
+  if ($('lab').hidden) return;
+  exercise = makeExercise();
+  $('studyQuestion').textContent = exercise.question;
+  $('studyHint').textContent = exercise.hint;
+  $('studyControls').hidden = !enabled || !exercise.choices;
+  options('studyChoice',[['','예측 선택'],...(exercise.choices || [])]);
+  if (enabled && $('method').value) {
+    $('method').value='';
+    clearApproval();
+    histogram();
+  }
+}
+
+$('studyMode').onchange = resetStudy;
+$('studyGoal').onchange = resetStudy;
+$('group').addEventListener('change', resetStudy);
+document.addEventListener('summarychange', () => {
+  if (studyData !== data || studyColumn !== $('target').value) resetStudy();
+});
+$('studyChoice').onchange = () => { $('studyReveal').disabled = !$('studyChoice').value; };
+$('studyReveal').onclick = () => {
+  const choice = $('studyChoice').value;
+  if (!choice || !exercise?.choices) return;
+  const labels = new Map(exercise.choices);
+  const lead = choice === exercise.answer ? '예측과 일치합니다. ' : '내 예측은 ‘'+labels.get(choice)+'’, 계산 결과는 ‘'+labels.get(exercise.answer)+'’입니다. ';
+  $('studyFeedback').textContent = lead+exercise.explanation;
+  $('studyFeedback').hidden = false;
+  $('studyControls').hidden = true;
+  document.body.classList.remove('awaiting-prediction');
+};
+resetStudy();
+</script></body></html>
+
