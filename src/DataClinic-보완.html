@@ -317,9 +317,9 @@ function missingMethods(data, column, ids) {
   return options;
 }
 
-function outlierMethods(data, column, ids) {
+function outlierMethods(column, ids, validRows, bounds) {
   const rowIds = new Set(ids);
-  const retained = data.rows.filter(row => !rowIds.has(row.id) && numeric(row.cells[column]))
+  const retained = validRows.filter(row => !rowIds.has(row.id))
     .map(row => readNumber(row.cells[column])).sort((a,b) => a-b);
   const options = [
     {id:'keep',text:'현재 값 유지하기'},
@@ -329,8 +329,12 @@ function outlierMethods(data, column, ids) {
   if (retained.length >= 4 && retained[0] !== retained.at(-1)) {
     options.splice(2,0,{id:'cap',text:'나머지 값의 범위에 맞추기',ids,column,low:retained[0],high:retained.at(-1)});
   }
-  return {options,evidence:'값들을 작은 순서대로 놓고 가운데 절반의 범위를 기준으로 살폈어요. 다른 값보다 크게 떨어진 ' + ids.length +
-    '개가 검토 대상이에요. 실제로 드문 집단을 보여주는 값일 수도 있어요.'};
+  const {n, q1, q3, iqr, lower, upper} = bounds;
+  const evidence = '유효한 수치 ' + n + '개 중 ' + ids.length + '개가 검토 후보입니다. Q1 '
+    + displayNumber(q1) + ' · Q3 ' + displayNumber(q3) + ' · IQR ' + displayNumber(iqr)
+    + ' · 비교 구간 ' + displayNumber(lower) + ' ~ ' + displayNumber(upper)
+    + ' (Q1 − 1.5×IQR ~ Q3 + 1.5×IQR). 구간 밖의 값은 원자료와 기록 맥락을 확인하세요.';
+  return {options,evidence};
 }
 
 function adviceFor(data, issue) {
@@ -473,6 +477,7 @@ function inspect(data, cutoff) {
   checked[2] = (cols.type >= 0 && cols.amount >= 0) || (cols.note >= 0 && cols.label >= 0 && (state.kind === 'medical' || cols.id >= 0 && /patient|환자/i.test(headers[cols.id])));
   checked[5] = cols.date >= 0;
   const outliers = new Map(), missing = new Map(), invalid = new Map();
+  const outlierChecks = [];
   const stale = [], duplicates = [], conflicts = [], protectedRefunds = [];
   function collect(map, key, id) {
     if (!map.has(key)) map.set(key, []);
@@ -507,15 +512,31 @@ function inspect(data, cutoff) {
   }
   numericColumns.forEach((enabled,i) => {
     if (!enabled) return;
-    const values = columns[i].numbers;
-    if (values.length < 4) return;
-    checked[0] = true;
-    const q1 = quantile(values,.25), q3 = quantile(values,.75);
-    const delta = 1.5 * (q3-q1);
-    for (const row of rows) {
-      const value = row.cells[i];
-      if (numeric(value) && (readNumber(value)<q1-delta || readNumber(value)>q3+delta)) collect(outliers,i,row.id);
+    const invalidIds = new Set(invalid.get(i) || []);
+    const validRows = rows.filter(row => !invalidIds.has(row.id) && numeric(row.cells[i]));
+    const values = invalidIds.size
+      ? validRows.map(row => readNumber(row.cells[i])).sort((a,b) => a-b)
+      : columns[i].numbers;
+    const check = {column:headers[i], n:values.length, excluded:columns[i].missing + invalidIds.size};
+    outlierChecks.push(check);
+    if (check.n < 4) {
+      check.status = '유효한 수치 4개 미만';
+      return;
     }
+    const q1 = quantile(values,.25), q3 = quantile(values,.75), iqr = q3-q1;
+    Object.assign(check,{q1,q3,iqr});
+    if (iqr === 0) {
+      check.status = '가운데 50%의 범위가 0';
+      return;
+    }
+    const lower = q1 - 1.5*iqr, upper = q3 + 1.5*iqr;
+    const ids = validRows.filter(row => {
+      const value = readNumber(row.cells[i]);
+      return value < lower || value > upper;
+    }).map(row => row.id);
+    Object.assign(check,{status:'평가',lower,upper,candidates:ids.length});
+    checked[0] = true;
+    if (ids.length) outliers.set(i,{ids,validRows,bounds:check});
   });
   const deathColumn = headers.findIndex(h => /^(death_date|사망일)$/i.test(h));
   const referenceConflicts = [];
@@ -574,9 +595,9 @@ function inspect(data, cutoff) {
     }
     add('conflict-' + message,'교차 참조 불일치 · ' + group.length + '행',message,options,group);
   }
-  for (const [i,ids] of outliers) {
+  for (const [i,{ids,validRows,bounds}] of outliers) {
     counts[0] += ids.length;
-    const {options,evidence} = outlierMethods(data,i,ids);
+    const {options,evidence} = outlierMethods(i,ids,validRows,bounds);
     add('outlier-' + i,'유난히 크거나 작은 값 · ' + headers[i],evidence,options,ids,i);
   }
   for (const [i,ids] of missing) {
@@ -596,7 +617,7 @@ function inspect(data, cutoff) {
   counts[2] = new Set([...conflicts.map(c => c.id),...referenceConflicts]).size;
   counts[3] = duplicates.length;
   counts[5] = stale.length;
-  const result = {counts,checked,issues};
+  const result = {counts,checked,issues,outlierChecks};
   inspectionCache.set(data,{cutoff,result});
   return result;
 }
@@ -860,6 +881,25 @@ function showOriginalPage(page) {
     ' / ' + format(totalRows) + '행 · ' + format(originalPage) + ' / ' + format(lastPage) + '페이지';
 }
 
+function renderOutlierChecks(checks) {
+  if (!checks.length) return '';
+  const rows = checks.map(check => {
+    const assessed = check.status === '평가';
+    return '<tr><th scope="row">' + E(check.column) + '</th><td>' + check.n + '</td><td>' +
+      check.excluded + '</td><td>' + (assessed
+        ? displayNumber(check.lower) + ' ~ ' + displayNumber(check.upper)
+        : '미평가 · ' + E(check.status)) + '</td><td>' + (assessed ? check.candidates : '—') + '</td></tr>';
+  }).join('');
+  return '<details class="panel"><summary>수치형 이상 후보의 계산 근거</summary>' +
+    '<p>같은 열의 유효한 수치로 Q1과 Q3를 구하고, IQR은 Q3에서 Q1을 뺀 값으로 계산합니다. ' +
+    'Q1 − 1.5×IQR보다 작거나 Q3 + 1.5×IQR보다 큰 값이 검토 후보입니다. ' +
+    '결측값과 형식·범위 위반 값은 이 계산에서 제외하고 별도로 표시합니다. ' +
+    '표본이 작거나 서로 다른 집단이 섞인 열에서는 구간을 참고용으로 사용하세요. ' +
+    '<a href="https://www.itl.nist.gov/div898/handbook/eda/section3/boxplot.htm" target="_blank" rel="noopener noreferrer">NIST 상자 그림 기준</a></p>' +
+    '<div class="table-wrap"><table><thead><tr><th>열</th><th>유효 수치</th><th>제외된 값</th>' +
+    '<th>비교 구간 또는 미평가 사유</th><th>후보 수</th></tr></thead><tbody>' + rows + '</tbody></table></div></details>';
+}
+
 function renderDiagnosis(data, result) {
   const reviewed = new Set(current().steps.map(step => step.issue).filter(Boolean));
   const purposeIssues = result.issues.map(issue => issueForPurpose(issue,data));
@@ -876,7 +916,7 @@ function renderDiagnosis(data, result) {
     '>' + (value === 'all' ? '전체' : E(value)) + '</option>').join('') + '</select></label>' : '';
   return identity() + '<h1>' + (pending.length ? '함께 살펴볼 기록이 있어요.' : '검토할 새 후보가 없어요.') +
     '</h1><p class="muted">' + data.rows.length + '행 · ' + (state.references.length+1) + '개 테이블 · 승인 ' + current().steps.length + '건</p>' +
-    dataOverview(data,result) + renderPurpose(data) +
+    dataOverview(data,result) + renderPurpose(data) + renderOutlierChecks(result.outlierChecks) +
     '<details class="panel"><summary>현재 데이터 미리보기</summary>' + table(data,[],5) + '</details>' + purposeLabelSummary(data) +
     '<section class="panel"><div class="row spread"><h2>검토할 문제 ' + pending.length + '개</h2><div class="row">' + filter +
     '<button class="plain" data-issue="privacy">가명처리</button></div></div><p class="muted">문제를 열면 어떤 뜻인지, 어떻게 처리할 수 있는지 함께 볼 수 있어요.</p>' +
@@ -1456,10 +1496,10 @@ function downloadCsv() {
 
 function downloadReport() {
   const version = current();
-  const {counts,checked} = inspect(version.data,state.cutoff);
+  const {counts,checked,outlierChecks} = inspect(version.data,state.cutoff);
   const report = {version:state.version, mode:state.mode, label:state.label, cutoff:state.cutoff, referenceTables:state.references.length,
     quality:quality.map(([dimension],i) => ({dimension,count:checked[i] ? counts[i] : null})),
-    steps:version.steps,audit:state.audit};
+    outlierChecks,steps:version.steps,audit:state.audit};
   download('dataclinic-v' + state.version + '-report.json',JSON.stringify(report,null,2),'application/json');
   notify('현재 버전의 승인 규칙과 전체 변경 이력 JSON을 준비했습니다.');
 }
