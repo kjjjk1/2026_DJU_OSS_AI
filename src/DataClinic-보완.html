@@ -40,10 +40,12 @@
     <div class="drop" id="drop"><span class="upload-icon" aria-hidden="true">⇧</span><h2>CSV 파일을 여기에 놓거나 선택하세요</h2><p class="muted">여러 파일을 선택하면 첫 파일을 진단하고 나머지는 근거로 조회합니다.</p><button class="primary" id="pick">파일 선택</button><input type="file" id="upload" accept=".csv,text/csv" multiple="" hidden=""><small>브라우저에서 처리 · 최대 6개, 파일 합계 100MB · 파일당 20만 행·150열, 전체 30만 행까지 · 원본은 그대로 유지</small></div>
     <section class="demo-card" aria-labelledby="hackathon-demo">
       <h2 id="hackathon-demo">해커톤 3분 시연</h2>
-      <p class="muted">홈페이지가 없는 병원 기록을 제외하면 전국 의료기관 수가 얼마나 달라질까요? 행 제외와 결측 표시 추가를 비교하고, 집계 목적에 맞는 방법을 승인해 보세요.</p>
-      <div class="row action-row"><button class="primary" id="hospitalDemo">병원 CSV 열기</button><small>파일 선택 창에서 병원정보서비스 원본 CSV를 선택하세요.</small></div>
+      <p><strong>전국 의료기관 수를 집계하려는데, 홈페이지가 없는 기관도 포함해야 할까?</strong></p>
+      <p class="muted">병원과 약국을 한 목록으로 불러와, 홈페이지가 없는 병원을 제외할지 표시만 남길지 비교해 보세요.</p>
+      <div class="row action-row"><button class="primary" id="hospitalDemo">병원·약국 CSV 합쳐서 열기</button><small>파일 선택 창에서 병원과 약국 원본 CSV를 한 개씩 선택하세요.</small></div>
+      <input type="file" id="hospitalDemoFiles" accept=".csv,text/csv" multiple hidden>
     </section>
-    <div class="row sample-row"><small>내장 샘플</small><button id="demo">천식 라벨 시연</button><button data-load="trade">거래 데이터</button><button data-load="medical">의료 데이터</button><button data-load="aggregate">내원일수 집계</button></div>
+    <div class="row sample-row"><small>내장 샘플</small><button data-load="trade">거래 데이터</button><button data-load="medical">의료 데이터</button><button data-load="aggregate">내원일수 집계</button></div>
   </section>
   <div id="content" hidden=""></div>
   <section id="purpose" hidden=""></section>
@@ -134,6 +136,19 @@ function datasetSchema(headers) {
     .every(name => names.has(name)) ? 'uci-diabetes-130' : null;
 }
 
+function isApplicable(data, row, column) {
+  const type = row.directoryType;
+  if (!type) return true;
+  return !(type === '약국' ? data.hospitalOnly : data.pharmacyOnly).has(data.headers[column]);
+}
+
+function directoryCounts(data) {
+  if (data.schema !== 'institution-directory') return null;
+  const counts = {병원:0,약국:0};
+  for (const row of data.rows) counts[row.directoryType]++;
+  return counts;
+}
+
 function isMissing(data, value) {
   return blank(value) || (data.schema === 'uci-diabetes-130' && value.trim() === '?');
 }
@@ -201,10 +216,12 @@ function profile(data) {
       ? 'category' : classifyHeader(name);
     const counts = new Map();
     const numbers = [];
-    let missing = 0;
+    let missing = 0, applicable = 0;
     let dates = 0;
     let minDate = '', maxDate = '';
     for (const row of data.rows) {
+      if (!isApplicable(data,row,i)) continue;
+      applicable++;
       const v = row.cells[i];
       if (isMissing(data,v)) { missing++; continue; }
       counts.set(v,(counts.get(v) || 0)+1);
@@ -215,7 +232,7 @@ function profile(data) {
         if (!maxDate || v > maxDate) maxDate = v;
       }
     }
-    const observed = data.rows.length - missing;
+    const observed = applicable - missing;
     let type = role || 'unknown';
     if (!role && observed) {
       if (numbers.length / observed >= .8) type = 'numeric';
@@ -229,7 +246,7 @@ function profile(data) {
       if (count > modeCount) { mode = value; modeCount = count; ties = 1; }
       else if (count === modeCount) ties++;
     }
-    return {name,type,missing,observed,numbers,counts,mode,modeCount,ties,minDate,maxDate,
+    return {name,type,missing,observed,applicable,numbers,counts,mode,modeCount,ties,minDate,maxDate,
       aggregate:/합계|총계|건수|인원|일수|명수|수량|금액|total|count|volume|amount/i.test(name)};
   });
   dataProfiles.set(data,columns);
@@ -451,7 +468,7 @@ function parseCsv(input) {
 function indices(headers) {
   const find = pattern => headers.findIndex(h => pattern.test(h));
   return {
-    id:find(/^(patient_id|patient_nbr|customer_id|환자번호|고객번호|환자id|고객id)$/i),
+    id:find(/^(patient_id|patient_nbr|customer_id|환자번호|고객번호|환자id|고객id|암호화요양기호)$/i),
     event:find(/^(visit_id|encounter_id|transaction_id|방문번호|거래번호)$/i),
     date:find(/^(date|visit_date|transaction_date|created_at|updated_at|날짜|진료일|거래일|갱신일)$/i),
     label:find(/^(label|target|class|라벨|정답)$/i),
@@ -511,6 +528,7 @@ function inspect(data, cutoff) {
       groups.get(v[cols.id]).push(row);
     }
     v.forEach((value,i) => {
+      if (!isApplicable(data,row,i)) return;
       if (isMissing(data,value)) { counts[1]++; collect(missing,i,row.id); return; }
       const invalidNumeric = numericColumns[i] && !numeric(value);
       const badAge = !encounterData && i === cols.age && numeric(value) && (!Number.isInteger(readNumber(value)) || readNumber(value)<0 || readNumber(value)>120);
@@ -531,11 +549,11 @@ function inspect(data, cutoff) {
   numericColumns.forEach((enabled,i) => {
     if (!enabled) return;
     const invalidIds = new Set(invalid.get(i) || []);
-    const validRows = rows.filter(row => !invalidIds.has(row.id) && numeric(row.cells[i]));
+    const validRows = rows.filter(row => isApplicable(data,row,i) && !invalidIds.has(row.id) && numeric(row.cells[i]));
     const values = invalidIds.size
       ? validRows.map(row => readNumber(row.cells[i])).sort((a,b) => a-b)
       : columns[i].numbers;
-    const check = {column:headers[i], n:values.length, excluded:columns[i].missing + invalidIds.size};
+    const check = {column:headers[i], n:values.length, excluded:rows.length - columns[i].observed + invalidIds.size};
     outlierChecks.push(check);
     if (check.n < 4) {
       check.status = '유효한 수치 4개 미만';
@@ -637,8 +655,8 @@ function inspect(data, cutoff) {
   }
   for (const [i,ids] of missing) {
     add('missing-' + i,(encounterData ? '결측 또는 미기록 값 · ' : '값이 비어 있어요 · ') + headers[i],
-      rows.length + '개 기록 중 ' + ids.length + '개(' + percent(ids.length,rows.length) +
-      (encounterData ? ')가 빈 값 또는 ?로 기록됐어요. 누락인지, 검사 미실시처럼 별도의 의미가 있는지 원자료를 확인하세요.' :
+      columns[i].applicable + '개 해당 기록 중 ' + ids.length + '개(' + percent(ids.length,columns[i].applicable) +
+      (data.schema === 'institution-directory' && headers[i] === '병원홈페이지' ? ')에 홈페이지 주소가 없습니다. 홈페이지 항목이 없는 약국은 이 집계에 포함되지 않습니다.' : encounterData ? ')가 빈 값 또는 ?로 기록됐어요. 누락인지, 검사 미실시처럼 별도의 의미가 있는지 원자료를 확인하세요.' :
         ')가 비어 있어요. 이 값이 어디서 누락됐는지 확인하면 처리 방법을 고르기 쉬워요.'),
       missingMethods(data,i,ids),ids,i);
   }
@@ -755,7 +773,7 @@ function table(data, ids = [], limit = 12, {offset = 0, label = '데이터 행 �
   return '<div class="table-wrap" tabindex="0" aria-label="' + E(label) + '"><table><thead><tr><th scope="col">원본 행</th>' +
     data.headers.map(h => '<th scope="col">' + E(h) + '</th>').join('') + '</tr></thead><tbody>' +
     rows.slice(offset,offset+limit).map(r => '<tr' + (matches.has(r.id) ? ' class="highlight"' : '') + '><th scope="row">' + r.id + '</th>' +
-      r.cells.map(v => '<td>' + (isMissing(data,v) ? '<span class="warn">결측</span>' : E(v)) + '</td>').join('') + '</tr>').join('') +
+      r.cells.map((v,i) => '<td>' + (!isApplicable(data,r,i) ? '<span class="muted">해당 없음</span>' : isMissing(data,v) ? '<span class="warn">결측</span>' : E(v)) + '</td>').join('') + '</tr>').join('') +
     '</tbody></table></div>' +
     (showCount ? '<small>' + Math.min(limit,rows.length) + ' / ' + rows.length + '행 표시</small>' : '');
 }
@@ -763,9 +781,13 @@ function table(data, ids = [], limit = 12, {offset = 0, label = '데이터 행 �
 function stats(data) {
   const label = data.headers.indexOf(state.label);
   const groups = new Map();
-  let missing = 0, unlabeled = 0;
+  let missing = 0, unlabeled = 0, applicable = 0;
   for (const r of data.rows) {
-    missing += r.cells.filter(value => isMissing(data,value)).length;
+    r.cells.forEach((value,i) => {
+      if (!isApplicable(data,r,i)) return;
+      applicable++;
+      if (isMissing(data,value)) missing++;
+    });
     if (label >= 0) {
       const value = r.cells[label];
       if (isMissing(data,value)) unlabeled++;
@@ -774,7 +796,7 @@ function stats(data) {
   }
   return {
     rows:data.rows.length, columns:data.headers.length, missing,
-    rate:data.rows.length && data.headers.length ? (100 * missing / (data.rows.length * data.headers.length)).toFixed(1) + '%' : '—',
+    rate:applicable ? (100 * missing / applicable).toFixed(1) + '%' : '—',
     groups,label,unlabeled
   };
 }
@@ -938,6 +960,7 @@ function renderOutlierChecks(checks) {
 }
 
 function renderDiagnosis(data, result) {
+  const directory = directoryCounts(data);
   const reviewed = new Set(current().steps.map(step => step.issue).filter(Boolean));
   const purposeIssues = result.issues.map(issue => issueForPurpose(issue,data));
   const targetMissing = purposeIssues.find(issue => issue.key.startsWith('missing') && issue.column >= 0 && data.headers[issue.column] === state.label);
@@ -953,6 +976,7 @@ function renderDiagnosis(data, result) {
     '>' + (value === 'all' ? '전체' : E(value)) + '</option>').join('') + '</select></label>' : '';
   return identity() + '<h1>' + (pending.length ? '함께 살펴볼 기록이 있어요.' : '검토할 새 후보가 없어요.') +
     '</h1><p class="muted">' + data.rows.length + '행 · ' + (state.references.length+1) + '개 테이블 · 승인 ' + current().steps.length + '건</p>' +
+    (directory ? '<p class="notice"><strong>기관 명부 병합</strong> · 병원 ' + directory.병원.toLocaleString('ko-KR') + '행 · 약국 ' + directory.약국.toLocaleString('ko-KR') + '행. 한쪽에만 있는 열은 다른 기관 유형에서 해당 없음으로 처리합니다.</p>' : '') +
     dataOverview(data,result) + renderPurpose(data) +
     (data.schema === 'uci-diabetes-130' ? '<p class="notice">UCI 당뇨병 입원 데이터 형식이 감지되었습니다. 한 행은 입원 기록 하나입니다. 같은 환자의 다른 입원은 중복으로 보지 않고, 나이 구간·진단 코드는 범주로, 빈 값과 ?는 결측으로 처리합니다. <a href="https://archive.ics.uci.edu/dataset/296/diabetes-130-us-hospitals-for-years-1999-2008" target="_blank" rel="noopener noreferrer">UCI 데이터 설명</a></p>' : '') +
     renderOutlierChecks(result.outlierChecks) +
@@ -1016,9 +1040,11 @@ function comparisonRule(option) {
 }
 
 function measureColumn(data, index) {
-  let missing = 0;
+  let missing = 0, applicable = 0;
   const frequencies = new Map(), numbers = [];
   for (const row of data.rows) {
+    if (!isApplicable(data,row,index)) continue;
+    applicable++;
     const value = row.cells[index];
     if (isMissing(data,value)) missing++;
     else {
@@ -1027,7 +1053,7 @@ function measureColumn(data, index) {
     }
   }
   numbers.sort((a,b) => a-b);
-  return {missing,distinct:frequencies.size, ...numberStats(numbers)};
+  return {missing,applicable,distinct:frequencies.size, ...numberStats(numbers)};
 }
 
 function impactSentence(data, issue, rule, after) {
@@ -1180,9 +1206,15 @@ function impactDetails(data, issue, option) {
     '<thead><tr><th scope="col">원본 행</th><th scope="col">현재 값</th><th scope="col">적용 후</th></tr></thead><tbody>' +
     firstIds.map(id => number(id + '행',cellValue(beforeRows.get(id)),cellValue(afterRows.get(id)))).join('') + '</tbody></table></div></details>' : '';
   let metrics = number('남는 기록',before.rows.length + '행',after.rows.length + '행');
+  const beforeDirectory = directoryCounts(before), afterDirectory = directoryCounts(after);
+  if (beforeDirectory && afterDirectory) {
+    for (const type of ['병원','약국']) {
+      metrics += number(type + ' 기록',beforeDirectory[type] + '행',afterDirectory[type] + '행');
+    }
+  }
   if (hasColumn) {
-    metrics += number('이 열의 빈칸',a.missing + '개 (' + percent(a.missing,before.rows.length) + ')',
-      b.missing + '개 (' + percent(b.missing,after.rows.length) + ')');
+    metrics += number('이 열의 빈칸',a.missing + '개 (' + percent(a.missing,a.applicable) + ')',
+      b.missing + '개 (' + percent(b.missing,b.applicable) + ')');
     if (c.type === 'numeric' && a.n) {
       if (c.aggregate || /^(cost|진료비)$/i.test(c.name)) metrics += number('기록된 숫자의 합계',displayNumber(a.total),displayNumber(b.total));
       metrics += number('숫자가 기록된 행',a.n + '행',b.n + '행');
@@ -1545,20 +1577,24 @@ function downloadReport() {
 
 function downloadRecipe() {
   const version = current();
+  const merged = version.data.schema === 'institution-directory';
   const functions = [readNumber,datasetSchema,isMissing,parseCsv,fingerprint,applyRule,serializeCsv,decodeCsvBytes];
+  if (merged) functions.push(mergeInstitutionDirectories);
   const definitions = ['const blank = ' + blank.toString(), 'const numeric = ' + numeric.toString(),
     'const cp949Table = ' + JSON.stringify(cp949Table) + ';', ...functions.map(fn => fn.toString())];
-  const source = "'use strict';\nconst fs = require('node:fs');\nconst limits = " + JSON.stringify(limits) + ';\n' +
+  const source = "'use strict';\nconst fs = require('node:fs');\nconst path = require('node:path');\nconst limits = " + JSON.stringify(limits) + ';\n' +
     definitions.join('\n\n') + '\nconst steps = ' + JSON.stringify(version.steps,null,2) + ';\n' +
-    'const [input, output] = process.argv.slice(2);\n' +
-    'if (!input || !output || require("node:path").resolve(input) === require("node:path").resolve(output)) throw Error("Usage: node recipe.cjs original.csv result.csv");\n' +
-    'const source = decodeCsvBytes(fs.readFileSync(input));\n' +
-    'const original = parseCsv(source);\n' +
-    'if (fingerprint(original) !== ' + JSON.stringify(state.sourceHash) + ') throw Error("Use the same source CSV in the original row order.");\n' +
+    'const args = process.argv.slice(2);\nconst input = args.slice(0,-1);\nconst output = args.at(-1);\n' +
+    'if (input.length !== ' + (merged ? 2 : 1) + ' || !output || input.some(file => path.resolve(file) === path.resolve(output))) throw Error(' +
+    JSON.stringify(merged ? 'Usage: node recipe.cjs hospital.csv pharmacy.csv result.csv' : 'Usage: node recipe.cjs original.csv result.csv') + ');\n' +
+    'const read = file => parseCsv(decodeCsvBytes(fs.readFileSync(file)));\n' +
+    (merged ? 'const original = mergeInstitutionDirectories(input.map(file => ({data:read(file)})));\n' : 'const original = read(input[0]);\n') +
+    'if (fingerprint(original) !== ' + JSON.stringify(state.sourceHash) + ') throw Error("Use the original source CSV files without changing their row order.");\n' +
     'const result = steps.reduce((data,step) => applyRule(data,step.rule),original);\n' +
     'fs.writeFileSync(output,serializeCsv(result),{flag:"wx"});\n';
   download('dataclinic-v' + state.version + '-recipe.cjs',source,'text/javascript');
-  notify('재실행 코드를 준비했습니다. Node.js에서 원본 CSV와 새 결과 경로를 인수로 실행하세요.');
+  notify(merged ? '재실행 코드에는 병원 CSV, 약국 CSV, 새 결과 경로를 순서대로 입력하세요.' :
+    '재실행 코드를 준비했습니다. Node.js에서 원본 CSV와 새 결과 경로를 인수로 실행하세요.');
 }
 
 document.addEventListener('click', e => {
@@ -1574,7 +1610,8 @@ document.addEventListener('click', e => {
     selectOption(b.dataset.selectOption);
     return;
   }
-  if (b.id === 'pick' || b.id === 'hospitalDemo') { $('upload').click(); return; }
+  if (b.id === 'pick') { $('upload').click(); return; }
+  if (b.id === 'hospitalDemo') { $('hospitalDemoFiles').click(); return; }
   if (b.dataset.evidencePage !== undefined && state) { state.evidencePage = Number(b.dataset.evidencePage); render(); $("evidence")?.scrollIntoView({block:"nearest"}); return; }
   if (b.hasAttribute('data-hist-reset')) {
     updateHistogram(null,'histReset');
@@ -1604,7 +1641,6 @@ document.addEventListener('click', e => {
     [...$('content').querySelectorAll('button[data-issue]')].find(button => button.dataset.issue === state.issue)?.focus();
   }
   else if (b.dataset.restore !== undefined) restore(Number(b.dataset.restore),'버전 복원');
-  else if (b.id === 'demo') { loadSample('medical',true); move(0); $('upload').value = ''; }
   else if (b.id === 'undo') restore(current().parent,'최근 승인 취소');
   else if (b.id === 'approve') approve();
   else if (b.id === 'source') {
@@ -1689,6 +1725,12 @@ document.addEventListener('submit', event => {
 
 document.addEventListener('change', async e => {
   const target = e.target;
+  if (target.id === 'hospitalDemoFiles') {
+    const files = [...target.files];
+    target.value = '';
+    await importFiles(files,true);
+    return;
+  }
   if (target.id === 'upload') {
     await importFiles([...target.files]);
     target.value = '';
@@ -1897,11 +1939,46 @@ function decodeCsvBytes(input) {
   }
 }
 
-async function importFiles(files) {
+function mergeInstitutionDirectories(tables) {
+  if (tables.length !== 2) throw Error('병원과 약국 CSV를 한 개씩, 함께 선택해 주세요.');
+  for (const {data} of tables) {
+    if (!['암호화요양기호','요양기관명','종별코드명'].every(name => data.headers.includes(name)) ||
+        data.headers.includes('기관유형')) {
+      throw Error('병원·약국 원본 CSV에 필요한 기관 정보 열을 확인해 주세요.');
+    }
+  }
+  const hospital = tables.find(({data}) => data.headers.includes('병원홈페이지'))?.data;
+  const pharmacy = tables.find(({data}) => !data.headers.includes('병원홈페이지'))?.data;
+  if (!hospital || !pharmacy) throw Error('병원홈페이지 열이 있는 병원 CSV와 약국 CSV를 한 개씩 선택해 주세요.');
+  const pharmacyType = pharmacy.headers.indexOf('종별코드명');
+  if (!pharmacy.rows.every(row => row.cells[pharmacyType].trim() === '약국')) {
+    throw Error('약국 CSV의 종별코드명 열을 확인해 주세요.');
+  }
+
+  const headers = ['기관유형',...new Set([...hospital.headers,...pharmacy.headers])];
+  if (headers.length > limits.cols || hospital.rows.length + pharmacy.rows.length > limits.rows) {
+    throw Error('병합 결과는 최대 20만 행·150열까지 지원합니다.');
+  }
+  const rows = [];
+  for (const [directoryType,data] of [['병원',hospital],['약국',pharmacy]]) {
+    const positions = new Map(data.headers.map((name,index) => [name,index]));
+    const sourceColumns = headers.slice(1).map(name => positions.get(name));
+    for (const row of data.rows) {
+      rows.push({id:rows.length+1,directoryType,
+        cells:[directoryType,...sourceColumns.map(index => index === undefined ? '' : row.cells[index])]});
+    }
+  }
+  return {schema:'institution-directory',headers,rows,
+    hospitalOnly:new Set(hospital.headers.filter(name => !pharmacy.headers.includes(name))),
+    pharmacyOnly:new Set(pharmacy.headers.filter(name => !hospital.headers.includes(name)))};
+}
+
+async function importFiles(files, mergeDirectories = false) {
   if (!files.length) return;
   const sequence = ++loadSequence;
   try {
     const totalBytes = files.reduce((total,file) => total + file.size,0);
+    if (mergeDirectories && files.length !== 2) throw Error('병원과 약국 CSV를 한 개씩, 함께 선택해 주세요.');
     if (files.length > 6) throw Error('한 번에 최대 6개 CSV 파일까지 선택할 수 있습니다.');
     if (totalBytes > limits.bytes) throw Error('선택한 파일 전체 크기는 100MB 이하여야 합니다.');
     const tables = [];
@@ -1925,8 +2002,12 @@ async function importFiles(files) {
       }
     }
     if (sequence !== loadSequence) return;
-    const [primary,...references] = tables;
-    load('upload',primary.data,primary.title,false,references);
+    if (mergeDirectories) {
+      load('upload',mergeInstitutionDirectories(tables),'전국 병원·약국 통합 명부');
+    } else {
+      const [primary,...references] = tables;
+      load('upload',primary.data,primary.title,false,references);
+    }
     move(0);
   } catch (error) {
     if (sequence === loadSequence) notify('CSV를 열 수 없습니다. ' + error.message,true);
@@ -1941,7 +2022,6 @@ drop.addEventListener('drop', event => {
   void importFiles([...event.dataTransfer.files]);
 });
 render();
-if (new URLSearchParams(location.search).get('demo') === 'medical') $('demo').click();
 </script></body></html>
 
 
