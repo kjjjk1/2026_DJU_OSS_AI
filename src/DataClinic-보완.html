@@ -1,0 +1,1704 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="교차 검증과 What-if로 데이터 전처리 결정을 기록합니다.">
+<title>DataClinic — 투명한 데이터 전처리</title>
+<style>
+:root{color-scheme:light;--bg:#f3f7f7;--panel:#fff;--line:#d9e6e4;--text:#163536;--sub:#506b6c;--green:#08796d;--soft:#e7f4f0;--warn:#8a5113;--warm:#fff3dd}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background:var(--bg);font:16px/1.55 system-ui,"Malgun Gothic",sans-serif}button,input,select{font:inherit}button,select,input:not([type=checkbox]){min-height:42px}button,select,input:not([type=checkbox]){border:1px solid var(--line);border-radius:9px;padding:8px 13px;color:var(--text);background:white}button{font-weight:680;cursor:pointer}button:hover,select:hover{border-color:var(--green);background:var(--soft)}button:disabled{opacity:.48;cursor:default}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #197c71;outline-offset:3px}.primary,.primary:hover{background:var(--green);border-color:var(--green);color:#fff}.primary:hover{background:#05695e}.plain{border-color:transparent;background:transparent;color:var(--green)}.top{border-bottom:1px solid var(--line);background:white}.top-inner{max-width:1440px;padding:13px clamp(16px,4vw,40px);margin:auto}.brand{display:inline-flex;align-items:center;gap:10px;font-size:1.35rem;font-weight:800;letter-spacing:-.04em}.mark{display:grid;place-items:center;background:var(--green);color:white;width:35px;height:35px;border-radius:8px;font-size:1.55rem}.protected{color:var(--green);font-weight:680}.protected::before{content:'●';font-size:.7rem;margin-right:6px}.wrap{max-width:1000px;margin:0 auto;padding:30px 22px 36px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.spread{justify-content:space-between}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:30px}.steps button{border:0;border-bottom:3px solid #dde8e7;border-radius:7px;background:transparent;color:var(--sub);padding:6px 4px 11px}.steps button[aria-current=step]{color:var(--green);border-color:var(--green)}.steps button.done{color:var(--green);border-color:#9fcfc7}.step-num{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#e3eceb;margin-right:6px;font-size:.82rem}.steps [aria-current] .step-num{background:var(--green);color:white}.intro{text-align:center;margin:8px 0 24px}.eyebrow{font-size:.88rem;font-weight:750;color:var(--green);margin-bottom:5px}h1,h2,h3,p{margin:0 0 10px}h1{font-size:clamp(1.8rem,4vw,2.7rem);line-height:1.22;letter-spacing:-.045em;overflow-wrap:anywhere}h2{font-size:1.18rem;letter-spacing:-.025em}h3{font-size:1rem}.muted,small{color:var(--sub)}small{font-size:.86rem}.warn{color:var(--warn)}.entry{max-width:720px;margin:auto}.drop{display:grid;justify-items:center;gap:7px;padding:31px 14px;border:2px dashed #9bc8c2;border-radius:17px;background:white;box-shadow:0 8px 25px #17363708;text-align:center}.drop p,.drop h2{margin:0}.drop.hover{background:var(--soft);border-color:var(--green)}.drop .primary{margin:8px 0 5px}.upload-icon{display:grid;place-items:center;width:50px;height:50px;background:var(--soft);color:var(--green);border-radius:13px;font:700 1.65rem system-ui;margin-bottom:5px}.demo-card{margin:15px 0 12px;background:var(--soft);border:1px solid #c6e2dc;border-radius:13px;padding:15px 17px}.demo-card h2,.demo-card p{margin:0}.sample-row{justify-content:center;margin-top:15px}.panel,.metric{background:white;border:1px solid var(--line);border-radius:12px;padding:15px}.panel{margin:13px 0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.metric strong{display:block;font-size:1.35rem;color:var(--green);margin:2px 0}.metric p{margin:0}.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.split>.panel{margin:0}.notice{background:var(--soft);border-left:3px solid var(--green);border-radius:6px;margin:12px 0;padding:9px 12px}.notice.error{background:var(--warm);border-color:var(--warn);color:var(--warn)}.issue-list{display:grid;gap:7px}.issue{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}.issue-icon{display:grid;place-items:center;border-radius:8px;background:var(--warm);color:var(--warn);width:32px;height:32px;flex:none}.issue small{display:block;font-weight:500}.issue-meta{display:flex!important;align-items:center;gap:12px;flex-wrap:wrap}.issue-reason{font-weight:400!important;color:var(--sub)}.problem-evidence{margin-top:14px}.problem-chip{display:inline-block;background:#fde7e9;color:#a12636;border-radius:6px;padding:2px 7px;font-weight:700}.histogram{display:grid;grid-template-columns:repeat(8,minmax(26px,1fr));gap:8px;align-items:end;height:150px;padding:8px 4px 0;border-bottom:1px solid var(--line)}.hist-bin{height:100%;display:flex;align-items:end;justify-content:center;gap:4px}.hist-bar{width:min(38%,24px);min-height:2px;border-radius:5px 5px 0 0}.hist-before{background:#829eac}.hist-after{background:var(--green)}.hist-labels{display:grid;grid-template-columns:repeat(8,minmax(26px,1fr));gap:8px;text-align:center;font-size:.75rem;color:var(--sub)}.hist-legend{display:flex;gap:14px;font-size:.85rem;color:var(--sub);margin-top:8px}.hist-legend label{display:flex;align-items:center;gap:5px;cursor:pointer}.hist-legend input{accent-color:var(--green)}.hist-controls{align-items:end;margin:8px 0}.hist-controls .field{max-width:180px}.hist-controls button{margin-bottom:1px}.hist-swatch{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px}.evidence-split{align-items:start}.evidence-split>.panel{margin:0}.evidence-split h3{margin-bottom:3px}.issue-copy{min-width:0;flex:1;overflow-wrap:anywhere}.issue-link{color:var(--green);font-size:.84rem}.badge{background:var(--soft);color:var(--green);border-radius:30px;padding:3px 9px;font-size:.84rem;font-weight:680}.table-wrap{overflow:auto;max-height:280px;border:1px solid var(--line);border-radius:8px}.table-wrap table{width:max-content;min-width:100%}table{border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);white-space:nowrap;overflow-wrap:normal} .table-wrap th,.table-wrap td{max-width:320px} .table-wrap th{font-weight:700}dialog{width:min(900px,calc(100vw - 28px));max-height:85vh;border:1px solid var(--line);border-radius:14px;padding:0;color:var(--text);box-shadow:0 20px 70px #16353640}dialog::backdrop{background:#102d2dcc}.dialog-head{position:sticky;top:0;background:#eaf2f2;padding:14px 18px;z-index:1}.dialog-body{padding:0 16px 16px}.profile-values{white-space:normal;min-width:220px;max-width:420px!important;line-height:1.55}.profile-trigger{border:0;background:transparent;color:var(--green);padding:0;min-height:0;font-weight:700;text-decoration:underline;text-underline-offset:3px}th{background:#eaf2f2}tbody th{background:white}tr.highlight td{background:#f5faf8}.field{display:grid;gap:4px;min-width:0}.field input,.field select{width:100%;max-width:100%}details.panel{padding:12px 15px}details[open]>summary{margin-bottom:11px}summary{cursor:pointer;color:var(--green);font-weight:700}.bar{height:5px;border-radius:6px;background:#dcebe7;overflow:hidden;margin-bottom:4px}.bar span{display:block;height:100%;background:var(--green)}.decision{display:grid;gap:7px}.choice{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:9px;cursor:pointer}.choice:has(:checked){background:var(--soft);border-color:#85bbb2}.choice input{accent-color:var(--green)}.action-row{margin-top:12px}.current-label{overflow-wrap:anywhere}.footer{padding:16px 4px;text-align:center;color:var(--sub);font-size:.86rem}.compare .metric{padding:10px}.compact{margin:0}.advanced{display:inline-block;position:relative;margin:0}.advanced>summary{list-style:none;margin:0!important;padding:7px 0}.advanced>summary::-webkit-details-marker{display:none}.advanced-menu{position:absolute;right:0;top:100%;min-width:185px;z-index:5;display:grid;gap:5px;background:white;padding:8px;border:1px solid var(--line);border-radius:10px;box-shadow:0 5px 17px #16353618}ul{padding-left:22px}[hidden]{display:none!important}
+@media(max-width:630px){.wrap{padding:18px 13px 25px}.split{grid-template-columns:1fr}.compare.split{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.steps{margin-bottom:19px}.steps button{font-size:.88rem}.protected{display:none}.issue-link{display:none}.row.spread{column-gap:8px}.drop{padding:22px 10px}}
+
+.overview{border-left:3px solid #77b8ae}.overview h2,.recommendation h2{margin:0}.recommendation{background:#eaf6f2;border-color:#c6e1da}.recommendation>p{margin-top:8px}.ai-row{margin-top:8px;padding-top:7px;border-top:1px solid #cddfdb}.ai-row>small{display:block}.ai-row .plain{padding-left:0}.ai-row [aria-live]{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:5px}.choice{align-items:flex-start}.choice input{margin-top:6px}.choice small{display:block;line-height:1.45;margin-top:2px}.impact-line{margin-top:7px}.impact-table{margin:7px 0 9px;max-height:none}.impact-table th:not([scope="row"]){white-space:nowrap}.impact-table tbody th{font-weight:650}.impact-table td{font-variant-numeric:tabular-nums}.impact-table td:last-child{background:#f2f9f6}.action-row .muted{font-size:.88rem}.panel>div>p{overflow-wrap:anywhere}
+.original-file{font:inherit;text-align:left;overflow-wrap:anywhere}
+#originalDialog{width:min(1200px,calc(100vw - 28px))}
+#originalMeta{overflow-wrap:anywhere}
+#originalTable .table-wrap{max-height:55vh}
+#originalTable td{white-space:pre-wrap;overflow-wrap:anywhere;min-width:5ch}
+#originalPage{width:8ch}
+.hist-labels{display:block;position:relative;height:1.65em}
+.hist-labels span{position:absolute;white-space:nowrap;transform:translateX(-50%)}
+.hist-labels span:first-child:not(:only-child){transform:none}
+.hist-labels span:last-child:not(:only-child){transform:translateX(-100%)}
+.hist-bar{min-height:0}
+.hist-error{color:var(--warn);margin:5px 0}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner row spread">
+  <div class="brand"><span class="mark" aria-hidden="true">+</span>DataClinic</div>
+  <div class="row"><small class="protected">원본 보호 중</small><details class="advanced" id="advanced"><summary>고급 기능</summary><div class="advanced-menu">
+    <button id="aiSettings">AI API 설정</button><button id="source">HTML 코드 저장</button><button data-page="2" data-session="">승인 이력과 복원</button><button data-page="3" data-session="">결과 내보내기</button>
+  </div></details></div>
+</div></header>
+<main class="wrap">
+  <nav id="tabs" class="steps" aria-label="전처리 단계"></nav>
+  <div id="message" class="notice" role="status" hidden=""></div>
+  <section id="guide" hidden=""></section>
+  <section id="entry" class="entry">
+    <div class="intro"><div class="eyebrow">검증 가능한 데이터 전처리</div><h1 id="entry-title">데이터를 올려주세요.</h1><p class="muted">문제를 찾고, 처리 방법과 결과를 비교해 보세요.</p></div>
+    <div class="drop" id="drop"><span class="upload-icon" aria-hidden="true">⇧</span><h2>CSV 파일을 여기에 놓거나 선택하세요</h2><p class="muted">여러 파일을 선택하면 첫 파일을 진단하고 나머지는 근거로 조회합니다.</p><button class="primary" id="pick">파일 선택</button><input type="file" id="upload" accept=".csv,text/csv" multiple="" hidden=""><small>브라우저에서 처리 · 최대 6개, 파일 합계 100MB · 파일당 20만 행·150열, 전체 30만 행까지 · 원본은 그대로 유지</small></div>
+    <section class="demo-card row spread"><div><h2>해커톤 3분 시연</h2><p class="muted">천식 진료 기록을 비교하고 중증 라벨의 변화를 확인합니다.</p></div><button id="demo">천식 시연 시작</button></section>
+    <div class="row sample-row"><small>샘플로 시작하기</small><button data-load="trade">거래 데이터</button><button data-load="medical">의료 데이터</button><button data-load="aggregate">내원일수 집계</button></div>
+  </section>
+  <div id="content" hidden=""></div>
+  <section id="purpose" hidden=""></section>
+  <dialog id="originalDialog" aria-labelledby="originalTitle">
+    <div class="dialog-head row spread">
+      <h2 id="originalTitle">파일 원본 보기</h2>
+      <form method="dialog"><button type="submit" autofocus>닫기</button></form>
+    </div>
+    <div class="dialog-body">
+      <p id="originalMeta" class="muted action-row"></p>
+      <div id="originalTable"></div>
+      <form id="originalPager" class="row action-row">
+        <button id="originalPrev" type="button">이전</button>
+        <button id="originalNext" type="button">다음</button>
+        <label for="originalPage">페이지</label>
+        <input id="originalPage" type="number" min="1" step="1" required>
+        <button type="submit">이동</button>
+        <small id="originalStatus" role="status"></small>
+      </form>
+    </div>
+  </dialog>
+  <dialog id="aiApiDialog" aria-labelledby="aiApiTitle">
+    <div class="dialog-head row spread"><h2 id="aiApiTitle">AI API 설정</h2><button type="button" data-close-ai>닫기</button></div>
+    <div class="dialog-body">
+      <p>Render 서버에 등록한 OpenAI 호환 Chat Completions API를 사용합니다.</p>
+      <div class="panel compact"><p><strong>모델:</strong> <span id="aiApiModel">확인 전</span></p><p id="aiApiStatus" class="muted" role="status">서버 설정을 확인해 주세요.</p></div>
+      <small>API 키는 서버 환경변수에만 저장됩니다. 브라우저에는 전달되지 않습니다. AI 요청에는 원본 셀이 아니라 컬럼명·진단 결과·집계 통계만 전송됩니다.</small>
+      <div class="row action-row"><button class="primary" id="refreshAiApi">연결 상태 확인</button></div>
+    </div>
+  </dialog>
+  <footer class="footer">AI는 제안하고, 시스템은 검증하며, 인간은 결정한다.</footer>
+</main>
+<script>
+'use strict';
+
+const samples = {
+  medical: {
+    title: '천식 진료 · 합성 데이터',
+    csv: `patient_id,name,visit_id,visit_date,age,cost,note,label
+P01,가상환자A,V01,2026-10-02,54,80000,정기 외래 방문,일반
+P01,가상환자A,V02,2026-10-18,54,760000,응급실 방문 후 입원,중증
+P02,가상환자B,V03,2026-10-05,31,55000,정기 외래 방문,일반
+P02,가상환자B,V03,2026-10-05,31,55000,정기 외래 방문,일반
+P03,가상환자C,V04,2025-01-07,,61000,추적 관찰,일반
+P04,가상환자D,V05,2026-10-22,42,83000,입원 치료,일반
+P05,가상환자E,V06,2026-10-24,151,72000,외래 방문,
+P06,가상환자F,V07,2026-10-25,38,69500,응급 증상 없음,일반`
+  },
+  aggregate: {
+    title:'성별·진료 유형별 내원일수 · 합성 데이터',
+    csv:`성별,구분,2022년_내원일수,2023년_내원일수
+여성,외래,"1,000",820
+여성,입원,10,12
+남성,외래,8,16
+남성,입원,11,14
+여성,응급,9,8
+남성,응급,12,13
+여성,기타,,9`
+  },
+  trade: {
+    title: '거래 기록 · 합성 데이터',
+    csv: `customer_id,transaction_id,date,amount,type,note,label
+C01,T01,2026-10-02,150000,결제,상품 구매,정상
+C01,T02,2026-10-05,-150000,환불,T01 취소 승인,정상
+C02,T03,2026-10-07,780000,결제,대량 주문,정상
+C02,T03,2026-10-07,780000,결제,대량 주문,정상
+C03,T04,2025-07-10,,결제,금액 확인 필요,검토
+C04,T05,2026-10-21,-3000,결제,일반 결제,검토
+C05,T06,2026-10-22,45000,결제,상품 구매,정상`
+  }
+};
+const quality = [
+  ['정확성','수치 이상값 후보','원자료와 실제 사실 확인'],
+  ['완전성','빈 셀','누락 이유와 보완 방법 확인'],
+  ['일관성','필드 간 충돌 후보','어느 기록이 맞는지 확인'],
+  ['유일성','완전 일치 행','실제 중복과 정상 반복 구분'],
+  ['유효성','형식 또는 범위 위반','허용 범위와 자료형 확인'],
+  ['적시성','기준일 이전 기록','분석 기간에 적합한지 확인']
+];
+const $ = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const E = escapeHtml;
+const blank = v => v.trim() === '';
+function readNumber(value) {
+  const clean = value.trim();
+  if (/^[+-]?(?:\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(clean)) return Number(clean.replaceAll(',',''));
+  return /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(clean) ? Number(clean) : NaN;
+}
+const numeric = v => Number.isFinite(readNumber(v));
+const dateOk = v => /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0,10) === v;
+const limits = {bytes:100000000, chars:100000000, rows:200000, totalRows:300000, cols:150};
+const medicalReference = `claim_id,patient_id,visit_id,service_date,amount
+C01,P01,V01,2026-10-02,80000
+C02,P01,V02,2026-10-18,760000
+C03,P02,V03,2026-10-05,55000
+C04,P04,V05,2026-10-22,83000`;
+let state;
+let aiApiConfig = {endpoint:'/api/ai',model:'',configured:false};
+
+async function refreshAiApiConfig() {
+  const model = $('aiApiModel'), status = $('aiApiStatus');
+  model.textContent = '확인 중…';
+  status.textContent = 'Render 서버 설정을 확인하고 있습니다.';
+  try {
+    const response = await fetch('/api/ai/config', {cache:'no-store'});
+    const config = await response.json();
+    if (!response.ok) throw Error('config');
+    aiApiConfig = {endpoint:'/api/ai',model:config.model || '',configured:Boolean(config.configured)};
+    model.textContent = aiApiConfig.model || '서버 미설정';
+    status.textContent = aiApiConfig.configured
+      ? '서버 API 키가 설정되어 있습니다. 키는 브라우저에 전달되지 않습니다.'
+      : 'Render 환경 변수 OPENAI_API_KEY를 등록한 뒤 재배포해 주세요.';
+  } catch {
+    aiApiConfig = {endpoint:'/api/ai',model:'',configured:false};
+    model.textContent = '연결 불가';
+    status.textContent = '이 페이지를 Render 서버 주소에서 열어야 합니다. 로컬에서는 server.mjs로 실행해 주세요.';
+  }
+}
+const inspectionCache = new WeakMap();
+let loadSequence = 0;
+const sourceTemplate = document.documentElement.cloneNode(true);
+const sourceScript = document.currentScript;
+
+const metricNumber = new Intl.NumberFormat('ko-KR',{maximumFractionDigits:3});
+const displayNumber = value => value === null || !Number.isFinite(value) ? '—' : metricNumber.format(value);
+const percent = (part,total) => total ? displayNumber(100 * part / total) + '%' : '—';
+const sum = values => values.reduce((total,value) => total + value,0);
+const average = values => values.length ? sum(values)/values.length : null;
+const dataProfiles = new WeakMap();
+
+function classifyHeader(header) {
+  if (/^(누락 표시|검토 표시) · /.test(header)) return 'category';
+  if (/\b(?:id|code|nbr|mrn)\b|_id$|_nbr$|id$|번호|코드|식별|주민등록|전화|우편번호|계정번호/i.test(header)) return 'id';
+  if (/^(label|target|class|정답|라벨)$/i.test(header)) return 'label';
+  if (/date|timestamp|날짜|일자|시각|갱신일|사망일|진료일|거래일|기준일/i.test(header)) return 'date';
+  if (/^(성별|구분|유형|종류|지역|시도|시군구|gender|sex|type|category|status|group|segment)$/i.test(header)) return 'category';
+  if (/메모|비고|설명|note|comment|description/i.test(header)) return 'text';
+  return '';
+}
+
+function profile(data) {
+  if (dataProfiles.has(data)) return dataProfiles.get(data);
+  const columns = data.headers.map((name,i) => {
+    const role = classifyHeader(name);
+    const counts = new Map();
+    const numbers = [];
+    let missing = 0;
+    let dates = 0;
+    let minDate = '', maxDate = '';
+    for (const row of data.rows) {
+      const v = row.cells[i];
+      if (blank(v)) { missing++; continue; }
+      counts.set(v,(counts.get(v) || 0)+1);
+      if (numeric(v)) numbers.push(readNumber(v));
+      if (dateOk(v)) {
+        dates++;
+        if (!minDate || v < minDate) minDate = v;
+        if (!maxDate || v > maxDate) maxDate = v;
+      }
+    }
+    const observed = data.rows.length - missing;
+    let type = role || 'unknown';
+    if (!role && observed) {
+      if (numbers.length / observed >= .8) type = 'numeric';
+      else if (dates === observed) type = 'date';
+      else if (counts.size <= Math.max(4,Math.sqrt(observed))) type = 'category';
+      else type = 'text';
+    }
+    numbers.sort((a,b) => a-b);
+    let mode = null, modeCount = 0, ties = 0;
+    for (const [value,count] of counts) {
+      if (count > modeCount) { mode = value; modeCount = count; ties = 1; }
+      else if (count === modeCount) ties++;
+    }
+    return {name,type,missing,observed,numbers,counts,mode,modeCount,ties,minDate,maxDate,
+      aggregate:/합계|총계|건수|인원|일수|명수|수량|금액|total|count|volume|amount/i.test(name)};
+  });
+  dataProfiles.set(data,columns);
+  return columns;
+}
+
+function numberStats(values) {
+  if (!values.length) return {n:0,mean:null,median:null,min:null,max:null,total:null};
+  return {n:values.length,mean:average(values),median:quantile(values,.5),min:values[0],max:values.at(-1),total:sum(values)};
+}
+
+function columnProfile(data, type) {
+  const labels = {category:'범주형',numeric:'숫자형',id:'식별자',text:'텍스트',date:'날짜',label:'라벨',unknown:'값 없음',rows:'행 데이터',columns:'컬럼 목록'};
+  let heading = labels[type] + ' 컬럼과 값';
+  let tableHtml = '';
+  if (type === 'rows') {
+    heading = '데이터 행';
+    tableHtml = table(data,[],10);
+  } else if (type === 'columns') {
+    heading = '전체 컬럼과 데이터 유형';
+    tableHtml = '<div class="table-wrap" style="max-height:65vh"><table><thead><tr><th>컬럼</th><th>유형</th><th>빈 값</th><th>값 예시</th></tr></thead><tbody>' +
+      profile(data).map(c => '<tr><th scope="row">' + E(c.name) + '</th><td>' + labels[c.type] + '</td><td>' + c.missing.toLocaleString('ko-KR') + '</td><td class="profile-values">' +
+        [...c.counts.keys()].slice(0,5).map(E).join(' · ') + '</td></tr>').join('') + '</tbody></table></div>';
+  } else {
+    const rows = profile(data).filter(c => c.type === type).map(c => {
+      const values = [...c.counts].sort((a,b) => b[1]-a[1]);
+      const shown = values.slice(0,30).map(([v,n]) => E(v) + ' <small>(' + n.toLocaleString('ko-KR') + ')</small>').join(' · ');
+      const numericSummary = type === 'numeric' && c.numbers.length ? '최솟값 ' + displayNumber(c.numbers[0]) + ' · 평균 ' + displayNumber(average(c.numbers)) + ' · 중앙값 ' + displayNumber(quantile(c.numbers,.5)) + ' · 최댓값 ' + displayNumber(c.numbers.at(-1)) : '';
+      return '<tr><th scope="row">' + E(c.name) + '</th><td>' + values.length.toLocaleString('ko-KR') + '</td><td>' + c.missing.toLocaleString('ko-KR') + '</td><td class="profile-values">' + (numericSummary || shown || '값 없음') + (values.length > 30 && !numericSummary ? ' · 외 ' + (values.length-30) + '종' : '') + '</td></tr>';
+    }).join('');
+    tableHtml = '<div class="table-wrap" style="max-height:65vh"><table><thead><tr><th>컬럼</th><th>서로 다른 값</th><th>빈 값</th><th>' + (type === 'numeric' ? '수치 요약' : '값과 건수') + '</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4">해당 컬럼이 없습니다.</td></tr>') + '</tbody></table></div>';
+  }
+  return '<dialog id="columnProfileDialog-' + type + '" aria-labelledby="profileTitle-' + type + '"><div class="dialog-head row spread"><div><h2 id="profileTitle-' + type + '">' + heading + '</h2><small>이 데이터에서 확인한 실제 컬럼과 값을 보여줍니다.</small></div><button type="button" data-close-profile="' + type + '">닫기</button></div><div class="dialog-body">' + tableHtml + '</div></dialog>';
+}
+
+function dataOverview(data, diagnosis) {
+  const columns = profile(data);
+  const names = data.headers.join(' ');
+  const yearMatches = [...names.matchAll(/(?<!\d)(?:19|20)\d{2}(?!\d)/g)].map(match => match[0]).filter(year => Number(year) <= 2100);
+  const years = [...new Set(yearMatches)].sort();
+  const inferred = /내원|진료|환자|입원|상병|천식|patient|visit_date/i.test(names) ? '의료 이용·진료'
+    : /거래|구매|환불|결제|transaction|refund/i.test(names) ? '거래·결제'
+    : '표 형태의';
+  const fieldLabels = {numeric:'숫자',category:'범주',text:'텍스트',date:'날짜',id:'식별자',label:'라벨',unknown:'값 없음'};
+  const mix = Object.entries(fieldLabels).flatMap(([type,label]) => {
+    const count = columns.filter(c => c.type === type).length;
+    return count ? [['category','numeric','id','text','date','label','unknown'].includes(type) ? '<button class="profile-trigger" data-profile="' + type + '" aria-haspopup="dialog">' + label + ' ' + count + '개</button>' : label + ' ' + count + '개'] : [];
+  });
+  const overview = inferred === '의료 이용·진료'
+    ? '환자·진료 관련 열 이름을 바탕으로 의료 이용·진료 데이터로 추정했어요. 실제 데이터 설명과 대조해 주세요.'
+    : inferred === '거래·결제'
+      ? '거래·결제 관련 열 이름을 바탕으로 거래 데이터로 추정했어요. 실제 데이터 설명과 대조해 주세요.'
+      : '열 이름과 값의 형식으로 요약했어요. 어떤 업무의 데이터인지는 파일 설명에서 확인해 주세요.';
+  const examples = columns.filter(c => ['numeric','category','date','label'].includes(c.type)).slice(0,4).map(c => E(c.name));
+  const dated = columns.find(c => c.type === 'date' && c.minDate);
+  const period = years.length ? '열 이름에 ' + years.join(', ') + '년이 표시돼요.' :
+    dated ? '「' + E(dated.name) + '」의 날짜 범위는 ' + dated.minDate + ' ~ ' + dated.maxDate + '예요.' : '';
+  return '<section class="panel overview"><div class="row spread"><h2>어떤 데이터인가요?</h2><span class="badge">자동 요약</span></div>' +
+    '<p>' + overview + (period ? ' ' + period : '') + '</p>' +
+    '<p class="muted"><button class="profile-trigger" data-profile="rows" aria-haspopup="dialog">' + data.rows.length.toLocaleString('ko-KR') + '행</button> · <button class="profile-trigger" data-profile="columns" aria-haspopup="dialog">' + columns.length + '열</button>' +
+    (mix.length ? ' · ' + mix.join(' / ') : '') + '</p>' +
+    (examples.length ? '<p class="muted">컬럼 예시 · ' + examples.join(', ') + ' <small>(자동 분류된 숫자·범주·날짜·라벨 열 중 앞의 4개)</small></p>' : '') +
+    '<p class="muted compact">빈 값 ' + diagnosis.counts[1] + '셀 · 수치 이상 후보 ' + diagnosis.counts[0] + '셀 · 완전 일치 ' + diagnosis.counts[3] + '행</p>' +
+    '<p class="muted compact">이 지표는 전처리 전 확인할 대상을 찾도록 보여줘요. 빈 값은 비어 있는 셀 수, 수치 이상 후보는 IQR 범위 밖 숫자 셀 수(오류 확정은 아님), 완전 일치는 첫 행을 제외한 완전 중복 행 수예요.</p>' +
+    aiBlock('summary') + '</section>' + ['category','numeric','id','text','date','label','unknown','rows','columns'].map(type => columnProfile(data,type)).join('');
+}
+
+function flagOption(ids, column, kind) {
+  return {id:'flag',text:kind === 'missing' ? '빈 값에 표시 남기기' : '검토 표시만 추가하기',ids,column,kind};
+}
+
+function replacement(id,text,ids,column,value) {
+  return {id,text,ids,column,value:String(value)};
+}
+
+function missingMethods(data, column, ids) {
+  const c = profile(data)[column];
+  const options = [
+    {id:'keep',text:'빈칸 그대로 두기'},
+    flagOption(ids,column,'missing'),
+    {id:'remove',text:'빈칸이 있는 행 빼기',ids,column}
+  ];
+  const valid = /^(age|나이|연령)$/i.test(c.name)
+    ? c.numbers.filter(v => Number.isInteger(v) && v >= 0 && v <= 120)
+    : /^(cost|진료비)$/i.test(c.name) ? c.numbers.filter(v => v >= 0) : c.numbers;
+  if (c.type === 'numeric' && valid.length >= 3 && c.numbers.length === c.observed) {
+    const median = quantile(valid,.5);
+    const mean = average(valid);
+    const integerOnly = valid.every(Number.isInteger);
+    const count = /내원일수|일수|건수|인원|횟수|연령|^나이$|^age$|count|quantity/i.test(c.name);
+    for (const [id,title,value] of [['fill','중앙값으로 채우기',median],['mean','평균값으로 채우기',mean]]) {
+      if (!Number.isFinite(value)) continue;
+      const rounded = count && integerOnly && !Number.isInteger(value);
+      options.push({...replacement(id,title,ids,column,rounded ? Math.round(value) : value),rounded,calculated:value});
+    }
+  }
+  if (c.type === 'category' && c.modeCount > 1 && c.ties === 1) {
+    options.push(replacement('mode','가장 자주 나타난 값으로 채우기',ids,column,c.mode));
+  }
+  return options;
+}
+
+function outlierMethods(data, column, ids) {
+  const rowIds = new Set(ids);
+  const retained = data.rows.filter(row => !rowIds.has(row.id) && numeric(row.cells[column]))
+    .map(row => readNumber(row.cells[column])).sort((a,b) => a-b);
+  const options = [
+    {id:'keep',text:'현재 값 유지하기'},
+    flagOption(ids,column,'outlier'),
+    {id:'remove',text:'후보 행을 분석에서 빼기',ids,column}
+  ];
+  if (retained.length >= 4 && retained[0] !== retained.at(-1)) {
+    options.splice(2,0,{id:'cap',text:'나머지 값의 범위에 맞추기',ids,column,low:retained[0],high:retained.at(-1)});
+  }
+  return {options,evidence:'값들을 작은 순서대로 놓고 가운데 절반의 범위를 기준으로 살폈어요. 다른 값보다 크게 떨어진 ' + ids.length +
+    '개가 검토 대상이에요. 실제로 드문 집단을 보여주는 값일 수도 있어요.'};
+}
+
+function adviceFor(data, issue) {
+  const col = profile(data)[issue.column];
+  const label = col && (col.name === state.label || col.type === 'label');
+  if (issue.key.startsWith('missing')) {
+    if (label || col?.type === 'id') return {id:'keep',why:'정답 라벨이나 식별자는 통계값으로 복원하기 어려워요. 원자료에서 확인할 때까지 빈칸을 남겨두세요.'};
+    if (col?.aggregate) return {id:'flag',why:'집계 항목을 임의로 채우면 합계에 추정값이 들어가요. 빈 값 표시로 구분하고 원출처를 확인하면 원래 값과 추정값을 섞지 않을 수 있어요.'};
+    if (state.mode === 'analysis') return {id:'flag',why:'빈칸이 왜 생겼는지 알기 전에는 행을 보존하는 편이 좋아요. 표시를 추가하면 빠진 기록만 찾아 원자료와 대조할 수 있어요.'};
+    if (col?.observed >= 10 && issue.ids.length / data.rows.length <= .1 && issue.options.some(o => o.id === 'fill')) {
+      return {id:'fill',why:'빈칸이 적고 관측값이 충분해, 숫자 입력이 필요한 학습 모델에서는 중앙값을 대체 후보로 시험할 수 있어요. 학습 데이터에서만 대체값을 구하고 검증 데이터에 적용하세요.'};
+    }
+    return {id:'flag',why:'지금은 이유를 확인하면서 행을 보존하는 편이 좋아요. 빈칸을 채우기 전에 특정 집단에만 값이 빠졌는지 살펴보세요.'};
+  }
+  if (issue.key.startsWith('outlier')) {
+    const small = data.rows.length < 20 ? '기록이 ' + data.rows.length + '행이라 한 행을 빼도 결과가 크게 달라질 수 있어요. ' : '';
+    return {id:'flag',why:small + (col?.aggregate ? '큰 값이 실제 집계일 수 있어요. 원본 수치를 보존하고 표시를 붙인 뒤 같은 기간·집단의 값을 대조해 보세요.'
+      : '통계적 경계를 넘었다는 사실만으로 오류를 확인할 수는 없어요. 표시를 붙여 원자료나 관련 기록부터 확인해 보세요.')};
+  }
+  if (issue.key === 'repeat') return {id:'keep',why:'같은 사람이라도 방문·거래 ID가 다르면 별개의 사건일 수 있어요. 분석 단위가 방문·거래라면 그대로 보존하는 편이 맞아요.'};
+  if (issue.key === 'refund') return {id:'keep',why:'환불 금액을 빼면 순매출이 높아질 수 있어요. 취소 승인 기록과 원거래를 먼저 비교해 보세요.'};
+  if (issue.key === 'duplicates') return {id:'keep',why:'같은 값이 여러 번 나타났어요. 복사본인지 확인했다면 완전 일치 행만 빼고, 독립적인 사건이라면 남겨두세요.'};
+  if (issue.key === 'privacy') return {id:'keep',why:'내보내기 전에 식별자·자유기재 열을 먼저 확인하세요. 치환과 삭제가 필요한 열을 지정하면 실제 변경 범위를 비교할 수 있어요.'};
+  return {id:'keep',why:'관련 기록과 원자료를 먼저 대조해 정확한 값을 확인하세요. 지금은 원본 값을 보존하는 편이 안전해요.'};
+}
+
+function optionDescription(option, issue) {
+  const missing = issue.key.startsWith('missing');
+  if (option.id === 'keep') return missing ? '원본 그대로. 집계나 모델에서 빈칸을 어떻게 읽는지 확인해 주세요.' : '지금 값을 보존해요. 추가 근거가 생기면 다시 검토할 수 있어요.';
+  if (option.id === 'flag') return missing ? '기록을 그대로 두고 어떤 행에 빈칸이 있는지 새 열로 표시해요.' : '현재 수치를 보존하고 검토할 행만 새 열에 표시해요.';
+  if (option.id === 'remove') return '해당 기록 전체를 현재 결과에서 제외해요. 같은 행의 다른 값도 분석에서 빠져요.';
+  if (option.id === 'fill' || option.id === 'mean') {
+    const median = option.id === 'fill';
+    const source = median ? '관측값을 순서대로 놓았을 때 가운데 값은 ' : '관측값의 평균은 ';
+    const caution = median ? '아주 크거나 작은 값의 영향을 덜 받아요.' : '유난히 크거나 작은 값이 평균을 끌어당길 수 있어요.';
+    return source + displayNumber(option.calculated) + '입니다. ' +
+      (option.rounded ? '정수 단위에 맞춰 ' + displayNumber(Number(option.value)) + '로 반올림해 채워요. ' : '이 값으로 빈칸을 채워요. ') + caution;
+  }
+  if (option.id === 'mode') return '가장 흔한 범주를 넣어요. 원래 소수 범주였을 가능성과 빈칸의 이유를 가릴 수 있어요.';
+  if (option.id === 'cap') return '낮은 값은 ' + displayNumber(option.low) + ', 높은 값은 ' + displayNumber(option.high) + ' 경계로 조정해요. 행은 남지만 실제 집계값이 바뀔 수 있어요.';
+  if (option.id === 'relabel') return '원자료를 검토해서 확인한 라벨을 한 행에 직접 입력해요.';
+  if (option.id === 'pseudonym') return '같은 ID는 같은 토큰으로 바꾸고, 선택한 열은 결과에서 빼요.';
+  return '';
+}
+
+function issueLesson(issue) {
+  if (issue.key.startsWith('missing')) return '결측치는 기록이 비어 있다는 뜻이에요. 처음부터 수집하지 못했거나 해당 항목이 적용되지 않는 등 이유가 다를 수 있어요. 빈칸을 0으로 읽으면 집계가 달라질 수 있어요.';
+  if (issue.key.startsWith('outlier')) return '이상치는 다른 값과 비교해 유난히 크거나 작은 값이에요. 입력 실수일 수도 있지만 실제로 드문 환자나 규모가 큰 집단을 보여주는 값일 수도 있어요.';
+  if (issue.key === 'duplicates') return '완전 일치 행은 모든 열의 값이 같은 기록이에요. 복사로 생긴 중복과 우연히 값이 같은 별개 기록을 구분하면 좋아요.';
+  return '';
+}
+
+function parseCsv(input) {
+  const source = input.replace(/^\uFEFF/, '');
+  if (source.length > limits.chars) throw Error('CSV는 파일당 최대 ' + limits.chars.toLocaleString('ko-KR') + '자까지 지원합니다.');
+  const records = [];
+  let record = [], cell = '', quoted = false, closed = false;
+  function endCell() {
+    record.push(cell);
+    if (record.length > limits.cols) throw Error('CSV는 최대 150개 열까지 지원합니다.');
+    cell = '';
+    closed = false;
+  }
+  function endRecord() {
+    endCell();
+    if (record.length > 1 || !blank(record[0])) records.push(record);
+    if (records.length > limits.rows + 1) throw Error('CSV는 파일당 최대 ' + limits.rows.toLocaleString('ko-KR') + '개 데이터 행까지 지원합니다.');
+    record = [];
+  }
+  for (let i = 0; i < source.length; i++) {
+    const c = source[i];
+    if (quoted) {
+      if (c !== '"') cell += c;
+      else if (source[i + 1] === '"') { cell += '"'; i++; }
+      else { quoted = false; closed = true; }
+      continue;
+    }
+    if (c === ',') endCell();
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && source[i + 1] === '\n') i++;
+      endRecord();
+    } else if (closed) throw Error('닫는 따옴표 뒤에는 쉼표 또는 줄바꿈이 필요합니다.');
+    else if (c === '"' && !cell) quoted = true;
+    else if (c === '"') throw Error('따옴표 형식을 확인해 주세요.');
+    else cell += c;
+  }
+  if (quoted) throw Error('닫히지 않은 따옴표가 있습니다.');
+  if (record.length || cell || closed) endRecord();
+  if (records.length < 2) throw Error('헤더와 데이터 한 행 이상이 필요합니다.');
+  const headers = records.shift().map(v => v.trim());
+  if (headers.some(blank) || new Set(headers.map(v => v.toLowerCase())).size !== headers.length) {
+    throw Error('헤더에 빈 이름이나 중복 이름이 있습니다.');
+  }
+  if (records.some(row => row.length !== headers.length)) throw Error('모든 행의 열 개수가 헤더와 같아야 합니다.');
+  return {headers, rows: records.map((cells,i) => ({id:i + 1, cells}))};
+}
+
+function indices(headers) {
+  const find = pattern => headers.findIndex(h => pattern.test(h));
+  return {
+    id:find(/^(patient_id|customer_id|환자번호|고객번호|환자id|고객id)$/i),
+    event:find(/^(visit_id|transaction_id|방문번호|거래번호)$/i),
+    date:find(/^(date|visit_date|transaction_date|created_at|updated_at|날짜|진료일|거래일|갱신일)$/i),
+    label:find(/^(label|target|class|라벨|정답)$/i),
+    note:find(/^(note|notes|memo|text|comment|description|메모|진료기록|텍스트|비고)$/i),
+    amount:find(/^(amount|금액)$/i), type:find(/^(type|거래유형)$/i),
+    cost:find(/^(cost|진료비)$/i), age:find(/^(age|나이|연령)$/i)
+  };
+}
+
+function quantile(sorted, fraction) {
+  const position = (sorted.length - 1) * fraction;
+  const low = Math.floor(position);
+  return sorted[low] + (sorted[Math.ceil(position)] - sorted[low]) * (position - low);
+}
+
+function tokenize(value) {
+  return value.normalize('NFKC').toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+}
+
+function medicalEvidence(value) {
+  const tokens = tokenize(value);
+  const negated = /(?:응급|입원)[^.!?]{0,12}(?:없음|아님|안 함)/u.test(tokens.join(' '));
+  return negated ? [] : tokens.filter(token => /^(응급실|응급|입원)(에서|으로|을|은|이|한|함)?$/u.test(token));
+}
+
+function inspect(data, cutoff) {
+  const cached = inspectionCache.get(data);
+  if (cached?.cutoff === cutoff) return cached.result;
+  const {headers,rows} = data, cols = indices(headers);
+  const counts = Array(6).fill(0), checked = [false,true,false,true,false,false];
+  const issues = [], seen = new Map(), repeats = new Map();
+  const groups = new Map();
+  function add(key, title, evidence, options, ids, column) {
+    issues.push({key,title,evidence,options,ids,column});
+  }
+  const columns = profile(data);
+  const numericColumns = columns.map((column,i) => [cols.age,cols.cost,cols.amount].includes(i) || column.type === 'numeric');
+  checked[4] = cols.date >= 0 || [cols.age,cols.cost,cols.amount].some(i => i >= 0) || numericColumns.includes(true);
+  checked[2] = (cols.type >= 0 && cols.amount >= 0) || (cols.note >= 0 && cols.label >= 0 && (state.kind === 'medical' || cols.id >= 0 && /patient|환자/i.test(headers[cols.id])));
+  checked[5] = cols.date >= 0;
+  const outliers = new Map(), missing = new Map(), invalid = new Map();
+  const stale = [], duplicates = [], conflicts = [], protectedRefunds = [];
+  function collect(map, key, id) {
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(id);
+  }
+  for (const row of rows) {
+    const v = row.cells;
+    const signature = JSON.stringify(v);
+    if (seen.has(signature)) duplicates.push(row.id);
+    else seen.set(signature,row.id);
+    if (cols.id >= 0 && !blank(v[cols.id])) {
+      if (!groups.has(v[cols.id])) groups.set(v[cols.id],[]);
+      groups.get(v[cols.id]).push(row);
+    }
+    v.forEach((value,i) => {
+      if (blank(value)) { counts[1]++; collect(missing,i,row.id); return; }
+      const invalidNumeric = numericColumns[i] && !numeric(value);
+      const badAge = i === cols.age && numeric(value) && (!Number.isInteger(readNumber(value)) || readNumber(value)<0 || readNumber(value)>120);
+      const badCost = i === cols.cost && numeric(value) && readNumber(value)<0;
+      const badDate = i === cols.date && !dateOk(value);
+      if (invalidNumeric || badAge || badCost || badDate) { counts[4]++; collect(invalid,i,row.id); }
+    });
+    if (cols.date >= 0 && dateOk(v[cols.date]) && v[cols.date] < cutoff) stale.push(row.id);
+    if (cols.type >= 0 && cols.amount >= 0 && numeric(v[cols.amount]) && readNumber(v[cols.amount]) < 0) {
+      if (/환불|refund/i.test(v[cols.type])) protectedRefunds.push(row.id);
+      else conflicts.push({id:row.id, text:'음수 금액과 거래 유형을 대조했습니다. 원거래를 확인하세요.'});
+    }
+    if ((state.kind === 'medical' || cols.id >= 0 && /patient|환자/i.test(headers[cols.id])) && cols.note >= 0 && cols.label >= 0 && v[cols.label] === '일반') {
+      const keywords = medicalEvidence(v[cols.note]);
+      if (keywords.length) conflicts.push({id:row.id, text:'메모에서 ' + keywords.join(', ') + ' 토큰을 찾았습니다. 현재 라벨은 일반입니다.'});
+    }
+  }
+  numericColumns.forEach((enabled,i) => {
+    if (!enabled) return;
+    const values = columns[i].numbers;
+    if (values.length < 4) return;
+    checked[0] = true;
+    const q1 = quantile(values,.25), q3 = quantile(values,.75);
+    const delta = 1.5 * (q3-q1);
+    for (const row of rows) {
+      const value = row.cells[i];
+      if (numeric(value) && (readNumber(value)<q1-delta || readNumber(value)>q3+delta)) collect(outliers,i,row.id);
+    }
+  });
+  const deathColumn = headers.findIndex(h => /^(death_date|사망일)$/i.test(h));
+  const referenceConflicts = [];
+  if (cols.id >= 0 && deathColumn >= 0) {
+    checked[2] = true;
+    for (const group of groups.values()) {
+      const dates = new Set(group.map(row => row.cells[deathColumn]).filter(dateOk));
+      if (dates.size > 1) referenceConflicts.push(...group.map(row => row.id));
+    }
+  }
+  if (referenceConflicts.length) add(
+    'date-conflict','같은 환자의 사망일이 서로 다릅니다',
+    '환자 ID로 묶었을 때 서로 다른 날짜가 기록되어 있습니다. 연결된 테이블의 진료일과 함께 살펴보세요.',
+    [{id:'keep',text:'현재 기록 유지 · 원자료 확인 필요'}],referenceConflicts
+  );
+  for (const group of groups.values()) {
+    if (cols.event < 0) continue;
+    const events = new Set(group.map(r => r.cells[cols.event]).filter(v => !blank(v)));
+    if (events.size > 1) repeats.set(group[0].id, group.map(r => r.id));
+  }
+  const keep = {id:'keep',text:'원래 값 유지'};
+  if (repeats.size) {
+    const ids = [...repeats.values()].flat();
+    add('repeat','동일 ' + (/patient|환자/i.test(headers[cols.id]) ? '환자의 반복 방문' : '고객의 반복 거래'),
+      '동일 개체에 서로 다른 이벤트 ID ' + (cols.date >= 0 ? '와 날짜가 표시됩니다. ' : '가 표시됩니다. ') +
+      '개체 ID만으로 중복을 제거하면 개별 이벤트와 해당 라벨이 사라질 수 있습니다.',
+      [{id:'keep',text:'방문·거래 단위 보존'},{id:'remove',text:'개체당 첫 행만 유지',ids:[...repeats.values()].flatMap(group => group.slice(1))}],ids);
+  }
+  if (duplicates.length) {
+    const duplicateIds = new Set(duplicates);
+    add('duplicates','완전 일치 행','모든 열이 일치하는 행끼리 비교했습니다. 첫 행과 함께 표시합니다.',
+      [keep,{id:'remove',text:'완전 일치 행만 제거',ids:duplicates}],
+      [...new Set(rows.filter(r => duplicateIds.has(r.id)).flatMap(r => [seen.get(JSON.stringify(r.cells)),r.id]))]);
+  }
+  if (protectedRefunds.length) {
+    const related = new Set(protectedRefunds);
+    if (cols.note >= 0 && cols.event >= 0) {
+      const byEvent = new Map(rows.filter(row => !blank(row.cells[cols.event])).map(r => [r.cells[cols.event].toLowerCase(),r.id]));
+      const refundIds = new Set(protectedRefunds);
+      for (const r of rows) {
+        if (!refundIds.has(r.id)) continue;
+        for (const token of tokenize(r.cells[cols.note])) {
+          if (byEvent.has(token)) related.add(byEvent.get(token));
+        }
+      }
+    }
+    add('refund','음수 금액과 정상 환불','금액은 음수이고 유형은 환불입니다. 메모의 원거래 번호와 비교할 수 있습니다.',
+      [keep,{id:'remove',text:'후보 행 제거',ids:protectedRefunds}],[...related]);
+  }
+  const conflictGroups = new Map();
+  for (const conflict of conflicts) collect(conflictGroups,conflict.text,conflict.id);
+  for (const [message,group] of conflictGroups) {
+    const options = [keep];
+    if (cols.label >= 0 && message.startsWith('메모에서')) {
+      options.push({id:'relabel',text:'검토한 한 행의 라벨 수정',column:cols.label,ids:group});
+    }
+    add('conflict-' + message,'교차 참조 불일치 · ' + group.length + '행',message,options,group);
+  }
+  for (const [i,ids] of outliers) {
+    counts[0] += ids.length;
+    const {options,evidence} = outlierMethods(data,i,ids);
+    add('outlier-' + i,'유난히 크거나 작은 값 · ' + headers[i],evidence,options,ids,i);
+  }
+  for (const [i,ids] of missing) {
+    add('missing-' + i,'값이 비어 있어요 · ' + headers[i],
+      rows.length + '개 기록 중 ' + ids.length + '개(' + percent(ids.length,rows.length) +
+      ')가 비어 있어요. 이 값이 어디서 누락됐는지 확인하면 처리 방법을 고르기 쉬워요.',
+      missingMethods(data,i,ids),ids,i);
+  }
+  for (const [i,ids] of invalid) {
+    add('invalid-' + i,'형식·범위 위반 · ' + headers[i],'날짜는 YYYY-MM-DD, 나이는 0~120의 정수, 진료비는 0 이상의 숫자로 검사합니다.',
+      [keep,{id:'remove',text:'후보 행 제거',ids,column:i}],ids,i);
+  }
+  if (stale.length) {
+    add('stale','기준일 이전 기록','설정한 기준일 ' + cutoff + '보다 이른 기록입니다.',
+      [keep,{id:'remove',text:'기준일 이전 행 제거',ids:stale}],stale);
+  }
+  counts[2] = new Set([...conflicts.map(c => c.id),...referenceConflicts]).size;
+  counts[3] = duplicates.length;
+  counts[5] = stale.length;
+  const result = {counts,checked,issues};
+  inspectionCache.set(data,{cutoff,result});
+  return result;
+}
+
+function applyRule(data, rule) {
+  const ids = new Set(rule.ids || []);
+  if (rule.id === 'remove') return {...data,rows:data.rows.filter(r => !ids.has(r.id))};
+  if (rule.id === 'flag') {
+    const base = (rule.kind === 'missing' ? '누락 표시 · ' : '검토 표시 · ') + data.headers[rule.column];
+    const used = new Set(data.headers.map(h => h.toLowerCase()));
+    let name = base;
+    let suffix = 2;
+    while (used.has(name.toLowerCase())) name = base + ' (' + suffix++ + ')';
+    return {...data,headers:[...data.headers,name],rows:data.rows.map(r => ({...r,cells:[...r.cells,ids.has(r.id) ? '1' : '0']}))};
+  }
+  if (['fill','mean','mode','cap','relabel'].includes(rule.id)) return {...data,rows:data.rows.map(r => {
+    if (!ids.has(r.id)) return r;
+    const cells = [...r.cells];
+    cells[rule.column] = rule.id === 'cap'
+      ? String(Math.min(rule.high,Math.max(rule.low,readNumber(cells[rule.column]))))
+      : rule.value;
+    return {...r,cells};
+  })};
+  if (rule.id === 'pseudonym') {
+    const tokens = new Map(), drop = new Set(rule.drop || []);
+    return {
+      headers:data.headers.filter((_,i) => !drop.has(i)),
+      rows:data.rows.map(r => {
+        const cells = [...r.cells];
+        if (rule.column >= 0 && !blank(cells[rule.column])) {
+          const raw = cells[rule.column];
+          if (!tokens.has(raw)) tokens.set(raw,'DC-' + String(tokens.size + 1).padStart(4,'0'));
+          cells[rule.column] = tokens.get(raw);
+        }
+        return {...r,cells:cells.filter((_,i) => !drop.has(i))};
+      })
+    };
+  }
+  return data;
+}
+
+function fingerprint(data) {
+  let first = 2166136261, second = 0x9e3779b9;
+  const feed = value => {
+    const text = String(value);
+    for (let i=0;i<text.length;i++) {
+      const code = text.charCodeAt(i);
+      first = Math.imul(first ^ code,16777619);
+      second = Math.imul(second + code,2246822519);
+    }
+    first = Math.imul(first ^ 0,16777619);
+    second = Math.imul(second + 1,2246822519);
+  };
+  for (const header of data.headers) feed(header);
+  for (const row of data.rows) {
+    feed(row.id);
+    for (const cell of row.cells) feed(cell);
+    feed(2);
+  }
+  return (first>>>0).toString(16).padStart(8,'0') + (second>>>0).toString(16).padStart(8,'0');
+}
+
+function load(kind, data, title, demo = false, references = []) {
+  loadSequence++;
+  const {label,date} = indices(data.headers);
+  let newest = '';
+  if (date >= 0) for (const row of data.rows) {
+    const value = row.cells[date];
+    if (dateOk(value) && value > newest) newest = value;
+  }
+  const before = newest ? new Date(newest) : new Date();
+  before.setUTCFullYear(before.getUTCFullYear() - 1);
+  state = {
+    kind,title,demo,references, expanded:true, issueFilter:'all', aiNotes:new Map(), sourceHash:fingerprint(data),page:0,mode:demo ? 'supervised' : 'analysis',label:label < 0 ? '' : data.headers[label],
+    cutoff:before.toISOString().slice(0,10),issue:null,option:null,labelEdit:'',labelRow:null,version:0,
+    versions:[{number:0,parent:null,data,steps:[],action:'원본'}],audit:[],reason:'',
+    maskColumn:null,dropColumns:null
+  };
+  render();
+  notify('');
+}
+
+function loadSample(kind, demo = false) {
+  const references = kind === 'medical' ? [{title:'진료 청구 근거 · 합성',data:parseCsv(medicalReference)}] : [];
+  load(kind,parseCsv(samples[kind].csv),samples[kind].title,demo,references);
+}
+
+function current() { return state.versions[state.version]; }
+function notify(message, error = false) {
+  $('message').textContent = message;
+  $('message').hidden = !message;
+  $('message').classList.toggle('error',error);
+}
+
+function table(data, ids = [], limit = 12, {offset = 0, label = '데이터 행 미리보기', showCount = true} = {}) {
+  const matches = new Set(ids);
+  const rows = ids.length ? data.rows.filter(r => matches.has(r.id)) : data.rows;
+  return '<div class="table-wrap" tabindex="0" aria-label="' + E(label) + '"><table><thead><tr><th scope="col">원본 행</th>' +
+    data.headers.map(h => '<th scope="col">' + E(h) + '</th>').join('') + '</tr></thead><tbody>' +
+    rows.slice(offset,offset+limit).map(r => '<tr' + (matches.has(r.id) ? ' class="highlight"' : '') + '><th scope="row">' + r.id + '</th>' +
+      r.cells.map(v => '<td>' + (blank(v) ? '<span class="warn">결측</span>' : E(v)) + '</td>').join('') + '</tr>').join('') +
+    '</tbody></table></div>' +
+    (showCount ? '<small>' + Math.min(limit,rows.length) + ' / ' + rows.length + '행 표시</small>' : '');
+}
+
+function stats(data) {
+  const label = data.headers.indexOf(state.label);
+  const groups = new Map();
+  let missing = 0, unlabeled = 0;
+  for (const r of data.rows) {
+    missing += r.cells.filter(blank).length;
+    if (label >= 0) {
+      const value = r.cells[label];
+      if (blank(value)) unlabeled++;
+      else groups.set(value, (groups.get(value) || 0) + 1);
+    }
+  }
+  return {
+    rows:data.rows.length, columns:data.headers.length, missing,
+    rate:data.rows.length && data.headers.length ? (100 * missing / (data.rows.length * data.headers.length)).toFixed(1) + '%' : '—',
+    groups,label,unlabeled
+  };
+}
+
+function labelStats(s) {
+  if (s.label < 0) return '<p class="warn">라벨 열을 선택하면 분포를 비교할 수 있습니다.</p>';
+  return '<p>라벨 결측 <strong>' + s.unlabeled + '행</strong></p>' +
+    [...s.groups].sort((a,b) => b[1]-a[1]).slice(0,8).map(([label,n]) => '<div class="row spread"><span>' + E(label) + '</span><strong>' + n +
+      '행</strong></div><div class="bar"><span style="width:' + (100*n/s.rows) + '%"></span></div>').join('') +
+      (s.groups.size > 8 ? '<small>라벨 ' + s.groups.size + '종 중 상위 8종</small>' : '');
+}
+
+function compare(before, after, beforeTitle = '현재 데이터', afterTitle = '적용 시') {
+  const card = (title,s) => '<div class="metric"><h3>' + title + '</h3><strong>' + s.rows + '행 · ' + s.columns +
+    '열</strong><p>결측 ' + s.missing + '셀 (' + s.rate + ')</p>' +
+    (state.mode === 'supervised' || state.mode === 'semisupervised' ? labelStats(s) : '') + '</div>';
+  return '<div class="split compare">' + card(beforeTitle,stats(before)) + card(afterTitle,stats(after)) + '</div>';
+}
+
+function selectedIssue(issues) { return issues.find(issue => issue.key === state.issue) || issues[0]; }
+
+function privacyIssue(data) {
+  const hasMask = current().steps.some(step => step.rule.id === 'pseudonym');
+  const {headers,rows} = data;
+  const cols = indices(headers);
+  const id = state.maskColumn === null ? cols.id : headers.indexOf(state.maskColumn);
+  const drop = state.dropColumns === null ? headers.flatMap((h,i) => (
+    /^(name|full.?name|email|e-mail|phone|telephone|mobile|address|ssn|dob|birthday|이름|성명|전화번호|휴대폰|연락처|주소|이메일|생년월일|주민등록번호)$/i.test(h) || i === cols.note
+  ) ? [i] : []) : state.dropColumns.map(h => headers.indexOf(h)).filter(i => i >= 0);
+  const removed = drop.filter(i => i !== id);
+  const options = [{id:'keep',text:'변환 없이 유지'}];
+  if ((id >= 0 || removed.length) && removed.length < headers.length) {
+    options.push({id:'pseudonym',text:'식별자 치환 및 선택 열 삭제',column:id,drop:removed});
+  }
+  return {
+    key:'privacy',title:'가명처리 What-if',
+    evidence:hasMask ? '현재 버전에 가명처리 규칙이 있습니다. 기존 처리는 승인 이력에서 확인할 수 있습니다.' :
+      '같은 ID는 같은 토큰으로 바꿉니다. 이름·자유기재 등 삭제 열과, 날짜·연령 등 결합 시 식별 가능한 열을 확인하세요.',
+    options,ids:rows.slice(0,6).map(r => r.id)
+  };
+}
+
+function privacyControls(data) {
+  const cols = indices(data.headers);
+  const suggested = privacyIssue(data).options.find(o => o.id === 'pseudonym');
+  const configured = state.dropColumns === null ? (suggested?.drop || []).map(i => data.headers[i]) : state.dropColumns;
+  return '<label class="field">치환할 ID 열<select id="maskColumn"><option value="auto"' + (state.maskColumn === null ? ' selected' : '') +
+    '>자동 감지 (' + E(data.headers[cols.id] || '해당 열 없음') + ')</option><option value=""' + (state.maskColumn === '' ? ' selected' : '') + '>치환 열 없음</option>' +
+    data.headers.map((h,i) => '<option value="' + i + '"' + (state.maskColumn === h ? ' selected' : '') + '>' + E(h) + '</option>').join('') +
+    '</select></label><details><summary>삭제할 열 직접 선택</summary><div class="row">' + data.headers.map((h,i) => '<label><input type="checkbox" data-drop="' + i + '"' +
+      (configured.includes(h) ? ' checked' : '') + '> ' + E(h) + '</label>').join('') + '</div></details>';
+}
+
+function labelCandidates(data) {
+  return profile(data).filter(c => c.type === 'label' || c.type === 'category' ||
+    (c.type === 'numeric' && c.counts.size > 0 && c.counts.size <= 20)).map(c => c.name);
+}
+
+function purposeLabelSummary(data) {
+  if (!['supervised','semisupervised'].includes(state.mode)) return '';
+  if (!state.label) return '<p class="notice">학습 목적을 선택했어요. 라벨 열을 지정하면 라벨 누락과 분포를 문제 목록에 반영합니다.</p>';
+  const index = data.headers.indexOf(state.label);
+  if (index < 0) return '';
+  const column = profile(data)[index];
+  const distribution = [...column.counts].sort((a,b) => b[1]-a[1]).slice(0,5)
+    .map(([value,count]) => E(value) + ' ' + count.toLocaleString('ko-KR') + '행').join(' · ');
+  return '<p class="notice"><strong>선택한 학습 라벨 · ' + E(state.label) + '</strong> · 라벨 있음 ' +
+    column.observed.toLocaleString('ko-KR') + '행 · 라벨 없음 ' + column.missing.toLocaleString('ko-KR') +
+    '행' + (distribution ? ' · 분포 ' + distribution : '') + '</p>';
+}
+
+function renderPurpose(data) {
+  const entries = [
+    ['analysis','빅데이터 분석'],
+    ['supervised','AI 학습 · 지도학습'],
+    ['semisupervised','AI 학습 · 일부 라벨 보유'],
+    ['unsupervised','AI 학습 · 비지도학습']
+  ];
+  const guidance = {
+    analysis:'이벤트 단위를 확인하고, 집계 행 수와 결측률 변화를 비교합니다.',
+    supervised:'학습용 라벨 열을 지정하고, 라벨 누락·분포와 메모 근거를 검토합니다.',
+    semisupervised:'라벨이 있는 행과 없는 행의 규모를 함께 확인합니다.',
+    unsupervised:'라벨 없이 결측과 수치 이상 후보를 검토하고 대표성을 확인합니다.'
+  };
+  return '<details class="panel" id="purposeDetails" open><summary>데이터셋 용도 설정 · ' +
+    ({analysis:'빅데이터 분석',supervised:'지도학습',semisupervised:'일부 라벨 보유',unsupervised:'비지도학습'})[state.mode] +
+    '</summary><div class="row spread"><div><h2>분석 방법</h2><p class="muted">' + guidance[state.mode] +
+    '</p></div><label class="field">목적<select id="mode">' + entries.map(([v,t]) => '<option value="' + v + '"' +
+      (state.mode === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>' +
+    ((state.mode === 'supervised' || state.mode === 'semisupervised') ? '<label class="field">라벨 열<select id="label"><option value="">선택 안 함</option>' +
+      labelCandidates(state.versions[0].data).filter(h => data.headers.includes(h)).map(h => '<option value="' + E(h) + '"' +
+      (state.label === h ? ' selected' : '') + '>' + E(h) + '</option>').join('') + '</select></label>' : '') + '</div></details>';
+}
+
+function category(issue) {
+  const key = issue.key;
+  if (key === 'repeat' || key === 'duplicates') return '유일성';
+  if (key.startsWith('outlier')) return '정확성';
+  if (key.startsWith('missing')) return '완전성';
+  if (key.startsWith('invalid')) return '유효성';
+  if (key === 'stale') return '적시성';
+  if (key === 'privacy') return '가명처리';
+  return '일관성';
+}
+
+function preprocessingReason(issue) {
+  if (issue.key.startsWith('outlier')) return '극단값이 오류라면 평균과 모델 결과를 크게 흔들 수 있어요.';
+  if (issue.key.startsWith('missing')) return '빈 값의 원인을 확인해야 분석에서 빠지는 기록을 줄일 수 있어요.';
+  if (issue.key.startsWith('invalid')) return '형식이나 범위가 맞지 않으면 계산에서 잘못 해석될 수 있어요.';
+  if (issue.key === 'repeat' || issue.key === 'duplicates') return '중복을 잘못 처리하면 행 수와 집계 결과가 달라질 수 있어요.';
+  if (issue.key === 'stale') return '분석 기간 밖의 기록이 결과에 섞이지 않는지 확인해야 해요.';
+  if (issue.key === 'refund') return '환불 금액을 놓치면 매출 집계가 달라질 수 있어요.';
+  if (issue.key.startsWith('conflict') || issue.key === 'date-conflict') return '서로 다른 기록 중 무엇을 쓸지 기준을 확인해야 해요.';
+  return '값을 그대로 쓰기 전에 원자료와 의미를 확인해야 해요.';
+}
+
+function identity() {
+  return '<div class="eyebrow current-label"><button type="button" class="profile-trigger original-file" data-original-file ' +
+    'aria-haspopup="dialog" title="파일 원본 보기">' + E(state.title) + '</button> · v' + state.version + '</div>';
+}
+
+const originalPageSize = 50;
+let originalPage = 1;
+
+function showOriginalPage(page) {
+  const data = state.versions[0].data;
+  const totalRows = data.rows.length;
+  const lastPage = Math.max(1,Math.ceil(totalRows/originalPageSize));
+  originalPage = Math.min(lastPage,Math.max(1,page));
+  const offset = (originalPage-1)*originalPageSize;
+  const format = value => value.toLocaleString('ko-KR');
+  $('originalMeta').textContent = state.title + ' · 업로드 당시 데이터(v0) · ' +
+    format(totalRows) + '행 · ' + format(data.headers.length) + '열';
+  $('originalTable').innerHTML = table(data,[],originalPageSize,{offset,label:'원본 CSV 데이터',showCount:false});
+  $('originalPager').hidden = lastPage === 1;
+  $('originalPage').value = originalPage;
+  $('originalPage').max = lastPage;
+  $('originalPrev').disabled = originalPage === 1;
+  $('originalNext').disabled = originalPage === lastPage;
+  $('originalStatus').textContent = format(offset+1) + '–' + format(Math.min(offset+originalPageSize,totalRows)) +
+    ' / ' + format(totalRows) + '행 · ' + format(originalPage) + ' / ' + format(lastPage) + '페이지';
+}
+
+function renderDiagnosis(data, result) {
+  const reviewed = new Set(current().steps.map(step => step.issue).filter(Boolean));
+  const purposeIssues = result.issues.map(issue => issueForPurpose(issue,data));
+  const targetMissing = purposeIssues.find(issue => issue.key.startsWith('missing') && issue.column >= 0 && data.headers[issue.column] === state.label);
+  const orderedByPurpose = targetMissing && ['supervised','semisupervised'].includes(state.mode)
+    ? [targetMissing,...purposeIssues.filter(issue => issue !== targetMissing)] : purposeIssues;
+  const pending = orderedByPurpose.filter(issue => !reviewed.has(issue.key));
+  const ordered = [...pending,...orderedByPurpose.filter(issue => reviewed.has(issue.key))];
+  const filtered = ordered.filter(issue => state.issueFilter === 'all' || category(issue) === state.issueFilter);
+  const visible = state.expanded ? filtered : filtered.slice(0,6);
+  const categories = ['all',...new Set(ordered.map(category))];
+  const filter = categories.length > 1 ? '<label class="row"><span>유형</span><select id="issueFilter">' +
+    categories.map(value => '<option value="' + E(value) + '"' + (state.issueFilter === value ? ' selected' : '') +
+    '>' + (value === 'all' ? '전체' : E(value)) + '</option>').join('') + '</select></label>' : '';
+  return identity() + '<h1>' + (pending.length ? '함께 살펴볼 기록이 있어요.' : '검토할 새 후보가 없어요.') +
+    '</h1><p class="muted">' + data.rows.length + '행 · ' + (state.references.length+1) + '개 테이블 · 승인 ' + current().steps.length + '건</p>' +
+    dataOverview(data,result) + renderPurpose(data) +
+    '<details class="panel"><summary>현재 데이터 미리보기</summary>' + table(data,[],5) + '</details>' + purposeLabelSummary(data) +
+    '<section class="panel"><div class="row spread"><h2>검토할 문제 ' + pending.length + '개</h2><div class="row">' + filter +
+    '<button class="plain" data-issue="privacy">가명처리</button></div></div><p class="muted">문제를 열면 어떤 뜻인지, 어떻게 처리할 수 있는지 함께 볼 수 있어요.</p>' +
+    aiBlock('diagnosis') + '<div class="issue-list">' + visible.map(issue => '<button class="issue" data-issue="' + E(issue.key) +
+      '"><span class="issue-icon" aria-hidden="true">!</span><span class="issue-copy"><small class="issue-meta"><span>' + category(issue) + (reviewed.has(issue.key) ? ' · 검토 완료' : '') + '</span><span class="issue-reason">' + preprocessingReason(issue) + '</span></small>' + E(issue.title) + '<small>관련 ' + issue.ids.length +
+      '행</small></span><span class="issue-link" aria-hidden="true">검토하기</span></button>').join('') +
+    (visible.length ? '' : '<p class="muted">현재 설정에서 탐지된 후보가 없습니다.</p>') + '</div>' +
+    (filtered.length > 6 ? '<button id="expandIssues" class="plain action-row">' + (state.expanded ? '처음 6개만 보기' :
+      '나머지 ' + (filtered.length - 6) + '개 더 보기') + '</button>' : '') + '</section>' +
+    '<details class="panel" id="qualityDetails"><summary>6대 데이터 품질 진단</summary><div class="grid">' +
+    quality.map(([name,unit,human],i) => '<article class="metric"><h3>' + name + '</h3><strong>' +
+      (result.checked[i] ? result.counts[i].toLocaleString() : '미평가') + '</strong><p><small>' + unit +
+      '</small></p><p><small>' + human + '</small></p></article>').join('') + '</div><label class="row action-row">적시성 기준일 <input type="date" id="cutoff" value="' +
+    E(state.cutoff) + '"></label></details><div class="row"><button data-page="3">결과 보기</button><button class="plain" data-page="2">승인 이력</button></div>';
+}
+
+function evidenceTables(data, issue) {
+  if (!issue.ids.length) return '';
+  const selection = new Set(issue.ids);
+  const selectedRows = data.rows.filter(row => selection.has(row.id));
+  const base = indices(data.headers);
+  const issueColumn = Number.isInteger(issue.column) ? issue.column : -1;
+  const leftColumns = [...new Set([base.id,issueColumn].filter(i => i >= 0))];
+  if (!leftColumns.length) leftColumns.push(...data.headers.map((_,i) => i).slice(0,2));
+  const pageSize = 100;
+  const pageCount = Math.max(1,Math.ceil(selectedRows.length/pageSize));
+  const page = Math.min(Math.max(0,Number(state.evidencePage) || 0),pageCount-1);
+  const pageRows = selectedRows.slice(page*pageSize,(page+1)*pageSize);
+  const cell = (row,index,mark) => {
+    const value = row.cells[index];
+    if (mark) return '<span class="problem-chip">' + (blank(value) ? '빈 값' : E(value)) + '</span>';
+    return blank(value) ? '<span class="warn">빈 값</span>' : E(value);
+  };
+  const grid = (columns,mark,rows) => '<div class="table-wrap" tabindex="0" aria-label="원본 행 전체 열 표" style="max-height:320px"><table><thead><tr><th scope="col">원본 행</th>' +
+    columns.map(i => '<th scope="col">' + E(data.headers[i]) + '</th>').join('') + '</tr></thead><tbody>' +
+    rows.map(row => '<tr><th scope="row">' + row.id + '</th>' + columns.map(i => '<td>' + cell(row,i,mark && i === issueColumn) + '</td>').join('') + '</tr>').join('') +
+    '</tbody></table></div>';
+  const pager = pageCount > 1 ? '<div class="row spread action-row"><small>원본 행 ' + (page*pageSize+1).toLocaleString('ko-KR') + '–' + Math.min((page+1)*pageSize,selectedRows.length).toLocaleString('ko-KR') + ' / ' + selectedRows.length.toLocaleString('ko-KR') + '행</small><div class="row"><button type="button" data-evidence-page="' + (page-1) + '"' + (page === 0 ? ' disabled' : '') + '>이전</button><button type="button" data-evidence-page="' + (page+1) + '"' + (page >= pageCount-1 ? ' disabled' : '') + '>다음</button></div></div>' : '<small>검토 대상 ' + selectedRows.length.toLocaleString('ko-KR') + '행 전체 · ' + data.headers.length + '개 열</small>';
+  const baseKey = data.headers[base.id];
+  const include = new Set(selectedRows.filter(row => base.id >= 0 && !blank(row.cells[base.id])).map(row => row.cells[base.id]));
+  const references = state.references.map(ref => {
+    if (!include.size || !baseKey) return '';
+    const refKey = ref.data.headers.findIndex(h => h.toLowerCase() === baseKey.toLowerCase());
+    if (refKey < 0) return '';
+    const ids = ref.data.rows.filter(row => include.has(row.cells[refKey])).map(row => row.id);
+    return ids.length ? '<h3 class="action-row">' + E(ref.title) + ' · ' + E(baseKey) + ' 연결</h3>' + table(ref.data,ids,5) : '';
+  }).filter(Boolean);
+  return '<details id="evidence" class="panel problem-evidence" open><summary>어떤 기록이 문제인가요? · ' + issue.ids.length.toLocaleString('ko-KR') + '행</summary>' +
+    '<div class="split evidence-split"><section class="panel"><h3>문제로 표시된 행</h3><p class="muted">문제가 탐지된 값을 표시했습니다.</p>' + grid(leftColumns,true,selectedRows.slice(0,5)) + '<small>처음 5개 행 표시</small></section>' +
+    '<section class="panel"><h3>원본 행 전체 보기</h3><p class="muted">검토 대상 행의 모든 열을 표시합니다. 표에서 가로·세로로 스크롤할 수 있습니다.</p>' + grid(data.headers.map((_,i) => i),false,pageRows) + pager + '</section></div>' + references.join('') + '</details>';
+}
+
+function comparisonRule(option) {
+  if (option.id !== 'relabel') return option;
+  const row = option.ids.includes(state.labelRow) ? state.labelRow : option.ids[0];
+  const value = state.labelEdit.trim();
+  return value ? {...option,ids:[row],value} : {id:'keep'};
+}
+
+function measureColumn(data, index) {
+  let missing = 0;
+  const frequencies = new Map(), numbers = [];
+  for (const row of data.rows) {
+    const value = row.cells[index];
+    if (blank(value)) missing++;
+    else {
+      frequencies.set(value,(frequencies.get(value) || 0)+1);
+      if (numeric(value)) numbers.push(readNumber(value));
+    }
+  }
+  numbers.sort((a,b) => a-b);
+  return {missing,distinct:frequencies.size, ...numberStats(numbers)};
+}
+
+function impactSentence(data, issue, rule, after) {
+  const removed = data.rows.length - after.rows.length;
+  if (rule.id === 'keep') return issue.key.startsWith('missing')
+    ? '값이 비어 있는 ' + issue.ids.length + '개 기록을 포함해 모든 행이 남아요. 내보낸 파일의 빈칸도 그대로예요.'
+    : '원래 값과 모든 기록이 남아요. 이 결정을 승인하면 검토 이력에 이유를 기록해요.';
+  if (rule.id === 'flag') return '모든 기록과 집계가 그대로예요. 표시 열에서 ' + rule.ids.length + '개 행은 1, 나머지는 0으로 표시돼요.';
+  if (rule.id === 'pseudonym') return '행은 그대로예요. 지정한 ID를 바꾸고 ' + rule.drop.length + '개 열이 결과에서 빠져요.';
+  if (removed) return '전체 ' + data.rows.length + '개 기록 중 ' + removed + '개(' + percent(removed,data.rows.length) +
+    ')가 빠져요. 이 행에 있던 다른 항목도 함께 빠져요.';
+  if (rule.id === 'cap') return rule.ids.length + '개 값을 경계로 조정해요. 보고서나 집계가 원본과 달라질 수 있어요.';
+  return (rule.ids?.length || 0) + '개 값이 바뀌어요. ' + (rule.id === 'relabel' ? '원자료로 확인한 라벨을 반영해요.' : '원자료 없이 채운 값은 추정값이에요.');
+}
+
+function groupImpact(before, after, index) {
+  const groupIndex = profile(before).findIndex((column,i) =>
+    i !== index && column.type === 'category' && /성별|연령대|구분|지역|group|segment|sex|gender/i.test(column.name) &&
+    column.counts.size >= 2 && column.counts.size <= 10);
+  if (groupIndex < 0) return '';
+  function totals(data) {
+    const groups = new Map();
+    for (const row of data.rows) {
+      if (!numeric(row.cells[index])) continue;
+      const key = row.cells[groupIndex];
+      const item = groups.get(key) || {count:0,total:0};
+      item.count++;
+      item.total += readNumber(row.cells[index]);
+      groups.set(key,item);
+    }
+    return groups;
+  }
+  const start = totals(before), finish = totals(after);
+  const changed = [...new Set([...start.keys(),...finish.keys()])].filter(key =>
+    start.get(key)?.total !== finish.get(key)?.total || start.get(key)?.count !== finish.get(key)?.count);
+  if (!changed.length) return '';
+  return '<details><summary>어느 집단에 영향이 있나요? · ' + E(before.headers[groupIndex]) + '</summary><div class="table-wrap">' +
+    '<table><thead><tr><th scope="col">집단</th><th scope="col">지금 합계</th><th scope="col">적용 후 합계</th></tr></thead><tbody>' +
+    changed.map(key => '<tr><th scope="row">' + (blank(key) ? '분류 없음' : E(key)) + '</th><td>' +
+      displayNumber(start.get(key)?.total ?? null) + '</td><td>' + displayNumber(finish.get(key)?.total ?? null) + '</td></tr>').join('') +
+    '</tbody></table></div><small>표에 적힌 값을 단순 합산했어요. 상세 행과 합계 행이 함께 있는지 확인해 주세요.</small></details>';
+}
+
+function chartNumber(value) {
+  return new Intl.NumberFormat('ko-KR',{notation:'compact',maximumSignificantDigits:3}).format(value);
+}
+
+function distributionChart(before, after, index) {
+  const datasets = [before,after];
+  let autoMin = Infinity, autoMax = -Infinity;
+  for (const data of datasets) {
+    for (const row of data.rows) {
+      const value = readNumber(row.cells[index]);
+      if (!Number.isFinite(value)) continue;
+      autoMin = Math.min(autoMin,value);
+      autoMax = Math.max(autoMax,value);
+    }
+  }
+  if (!Number.isFinite(autoMin)) return '';
+  const key = state.version + ':' + index;
+  const {min,max} = state.chartRanges?.get(key) || {min:autoMin,max:autoMax};
+  const valueAt = fraction => fraction === 0 ? min : fraction === 1 ? max : min*(1-fraction) + max*fraction;
+  const bins = min === max ? 1 : 8;
+  const boundaries = Array.from({length:bins-1},(_,i) => valueAt((i+1)/bins));
+  const outside = [0,0];
+  const counts = datasets.map((data,series) => {
+    const result = Array(bins).fill(0);
+    for (const row of data.rows) {
+      const number = readNumber(row.cells[index]);
+      if (!Number.isFinite(number)) continue;
+      if (number < min || number > max) { outside[series]++; continue; }
+      const boundary = boundaries.findIndex(value => number < value);
+      result[boundary < 0 ? bins-1 : boundary]++;
+    }
+    return result;
+  });
+  const peak = Math.max(1,...counts.flat());
+  const showBefore = state.histSeries?.before !== false, showAfter = state.histSeries?.after !== false;
+  const bar = (kind,label,count) => '<span class="hist-bar hist-' + kind + '" style="height:' +
+    (count ? Math.max(2,100*count/peak) : 0) + '%" title="' + label + ' ' + count + '개"></span>';
+  const bars = counts[0].map((count,i) => '<div class="hist-bin">' +
+    (showBefore ? bar('before','처리 전',count) : '') +
+    (showAfter ? bar('after','처리 후',counts[1][i]) : '') + '</div>').join('');
+  const labels = (bins === 1 ? [.5] : [0,.25,.5,.75,1]).map(fraction => {
+    const value = bins === 1 ? min : valueAt(fraction);
+    const exact = String(value);
+    return '<span style="left:' + (fraction*100) + '%" title="' + E(exact) + '">' +
+      E((bins === 1 || fraction === 0 || fraction === 1) && exact.length <= 10 ? exact : chartNumber(value)) + '</span>';
+  }).join('');
+  return '<details id="distribution" class="panel"><summary>' + E(before.headers[index]) + ' · 수치 분포 비교</summary>' +
+    '<p class="muted">데이터 최솟값 ' + E(String(autoMin)) + ' · 최댓값 ' + E(String(autoMax)) + '</p>' +
+    '<form id="histForm" class="row hist-controls" novalidate><label class="field"><span>범위 시작</span><input id="histMin" type="number" step="any" value="' + E(String(min)) + '"></label>' +
+    '<label class="field"><span>범위 끝</span><input id="histMax" type="number" step="any" value="' + E(String(max)) + '"></label>' +
+    '<button id="histApply" type="submit">범위 적용</button><button id="histReset" type="button" data-hist-reset>데이터 최솟값·최댓값 적용</button></form>' +
+    '<p id="histError" class="hist-error" role="status" hidden></p>' +
+    '<div class="histogram" style="grid-template-columns:repeat(' + bins + ',minmax(0,1fr))" role="img" aria-label="처리 전후 분포 · ' +
+    E(String(min)) + '에서 ' + E(String(max)) + '까지 · ' + bins + '개 구간">' + bars + '</div><div class="hist-labels">' + labels + '</div>' +
+    '<div class="hist-legend"><label><input type="checkbox" id="histBefore" data-hist-series="before"' + (showBefore ? ' checked' : '') + '><i class="hist-swatch hist-before"></i>처리 전</label>' +
+    '<label><input type="checkbox" id="histAfter" data-hist-series="after"' + (showAfter ? ' checked' : '') + '><i class="hist-swatch hist-after"></i>처리 후</label></div>' +
+    (outside[0] || outside[1] ? '<small>선택한 범위 밖의 값 · 처리 전 ' + outside[0] + '개 / 처리 후 ' + outside[1] + '개</small>' : '') +
+    '</details>';
+}
+
+function reviewDistribution(data, issue, option) {
+  if (!Number.isInteger(issue.column) || profile(data)[issue.column]?.type !== 'numeric') return '';
+  return distributionChart(data,applyRule(data,comparisonRule(option)),issue.column);
+}
+
+function refreshDistribution(data, issue, option, focusId) {
+  const chart = $('distribution');
+  if (!chart) return;
+  const open = chart.open;
+  chart.outerHTML = reviewDistribution(data,issue,option);
+  if ($('distribution')) $('distribution').open = open;
+  if (focusId) $(focusId)?.focus({preventScroll:true});
+}
+
+function impactDetails(data, issue, option) {
+  const before = data;
+  const rule = comparisonRule(option);
+  const after = applyRule(before,rule);
+  const hasColumn = Number.isInteger(issue.column);
+  const header = hasColumn ? before.headers[issue.column] : '';
+  const c = hasColumn ? profile(before)[issue.column] : null;
+  const a = hasColumn ? measureColumn(before,issue.column) : null;
+  const b = hasColumn ? measureColumn(after,issue.column) : null;
+  const number = (label,x,y) => '<tr><th scope="row">' + label + '</th><td>' + x + '</td><td>' + y + '</td></tr>';
+  const drift = a && c?.aggregate && [a.total,b.total].every(Number.isFinite) && a.total !== b.total
+    ? '<p class="notice error">기록된 값의 합계가 ' + displayNumber(Math.abs(b.total-a.total)) + ' ' +
+      (a.total > b.total ? '줄어요.' : '늘어요.') + ' 이 열이 집계를 뜻한다면 원출처와 맞는지 확인해 주세요.</p>' : '';
+  const rawLabel = before.headers.indexOf(state.label);
+  let labels = '';
+  if (rawLabel >= 0 && ['supervised','semisupervised'].includes(state.mode)) {
+    const beforeLabels = stats(before), afterLabels = stats(after);
+    const lost = [...beforeLabels.groups.keys()].filter(label => !afterLabels.groups.has(label));
+    labels = (lost.length ? '<p class="notice error">사라지는 라벨 · ' + lost.slice(0,5).map(E).join(', ') +
+      '. 이 상태로 학습하면 해당 예시를 배울 수 없어요.</p>' : '') +
+      '<details><summary>라벨 분포 비교</summary>' + compare(before,after,'현재','적용 후') + '</details>';
+  }
+  const firstIds = (rule.ids || issue.ids).slice(0,4);
+  const beforeRows = new Map();
+  const afterRows = new Map();
+  const targets = new Set(firstIds);
+  if (hasColumn) {
+    for (const row of before.rows) if (targets.has(row.id)) beforeRows.set(row.id,row.cells[issue.column]);
+    for (const row of after.rows) if (targets.has(row.id)) afterRows.set(row.id,row.cells[issue.column]);
+  }
+  const cellValue = value => value === undefined ? '행 제외' : blank(value) ? '빈칸' : E(value);
+  const examples = hasColumn && firstIds.length ? '<details><summary>관련 행의 실제 값 비교 · 최대 4행</summary><div class="table-wrap"><table>' +
+    '<thead><tr><th scope="col">원본 행</th><th scope="col">현재 값</th><th scope="col">적용 후</th></tr></thead><tbody>' +
+    firstIds.map(id => number(id + '행',cellValue(beforeRows.get(id)),cellValue(afterRows.get(id)))).join('') + '</tbody></table></div></details>' : '';
+  let metrics = number('남는 기록',before.rows.length + '행',after.rows.length + '행');
+  if (hasColumn) {
+    metrics += number('이 열의 빈칸',a.missing + '개 (' + percent(a.missing,before.rows.length) + ')',
+      b.missing + '개 (' + percent(b.missing,after.rows.length) + ')');
+    if (c.type === 'numeric' && a.n) {
+      if (c.aggregate || /^(cost|진료비)$/i.test(c.name)) metrics += number('기록된 숫자의 합계',displayNumber(a.total),displayNumber(b.total));
+      metrics += number('숫자가 기록된 행',a.n + '행',b.n + '행');
+      metrics += number('평균',displayNumber(a.mean),displayNumber(b.mean)) + number('중앙값',displayNumber(a.median),displayNumber(b.median)) +
+        number('최솟값 ~ 최댓값',displayNumber(a.min) + ' ~ ' + displayNumber(a.max),displayNumber(b.min) + ' ~ ' + displayNumber(b.max));
+    } else if (c.type === 'category') {
+      metrics += number('서로 다른 범주',a.distinct + '개',b.distinct + '개');
+    }
+  } else if (!labels) {
+    metrics += number('열 수',before.headers.length + '열',after.headers.length + '열');
+  }
+  return '<p class="impact-line">' + impactSentence(data,issue,rule,after) + '</p>' +
+    (header ? '<p class="muted compact">비교 항목 · ' + E(header) + '</p>' : '') +
+    '<div class="table-wrap impact-table"><table><thead><tr><th scope="col">지표</th><th scope="col">지금</th><th scope="col">적용 후</th></tr></thead><tbody>' +
+    metrics + '</tbody></table></div>' + (rule.id === 'flag' ? '<small>표시 열 · ' + E(after.headers.at(-1)) + '</small>' : '') +
+    drift + (c?.aggregate && ['remove','fill','mean','cap'].includes(rule.id) ? groupImpact(before,after,issue.column) : '') +
+    labels + examples;
+}
+
+function methodMatrix(data, issue) {
+  if (issue.options.length < 2) return '';
+  const c = Number.isInteger(issue.column) ? profile(data)[issue.column] : null;
+  const focus = c && c.type === 'numeric' && c.aggregate;
+  const rows = issue.options.map(option => {
+    const rule = option.id === 'relabel' ? {id:'keep'} : option;
+    const after = applyRule(data,rule);
+    const remaining = after.rows.length;
+    const statsAfter = c ? measureColumn(after,issue.column) : null;
+    const difference = data.rows.length-remaining;
+    return '<tr><th scope="row">' + E(option.text) + '</th><td>' + remaining + '행' + (difference ? ' (−' + difference + ')' : '') + '</td>' +
+      (c ? '<td>' + statsAfter.missing + '개</td>' : '') +
+      (focus ? '<td>' + displayNumber(statsAfter.total) + '</td>' : '') + '</tr>';
+  });
+  return '<details id="matrix" class="panel"><summary>모든 방법의 결과 한눈에 비교</summary><div class="table-wrap"><table><thead><tr>' +
+    '<th scope="col">처리 방법</th><th scope="col">남는 기록</th>' + (c ? '<th scope="col">남는 빈칸</th>' : '') +
+    (focus ? '<th scope="col">기록된 값의 합계</th>' : '') + '</tr></thead><tbody>' + rows.join('') +
+    '</tbody></table></div>' + (issue.options.some(o => o.id === 'relabel') ? '<small>라벨 수정 결과는 값을 입력하면 미리보기에 표시돼요.</small>' : '') + '</details>';
+}
+
+function activeIssue() {
+  const data = current().data;
+  return issueForPurpose(selectedIssue([...inspect(data,state.cutoff).issues,privacyIssue(data)]),data);
+}
+
+function aiKey(kind, issue) {
+  return JSON.stringify([kind,state.version,state.mode,state.label,state.cutoff,issue?.key,
+    kind === 'review' ? state.option : null]);
+}
+
+function aiBlock(kind, issue) {
+  const output = state.aiNotes.get(aiKey(kind,issue));
+  const label = kind === 'summary' ? 'AI에게 데이터 요약 부탁하기'
+    : kind === 'diagnosis' ? 'AI에게 전체 문제 해결 가이드 요청'
+    : 'AI에게 전처리 방향과 What-if 결과 추천 요청';
+  return '<div class="ai-row ai-' + kind + '"><button class="plain" data-ai="' + kind + '">' + label +
+    '</button><p id="ai-output-' + kind + '" class="muted compact" aria-live="polite"' + (output ? '' : ' hidden') + '>' + E(output || '') + '</p>' +
+    '<small>설정한 API 또는 지원 브라우저의 기기 내 AI를 사용합니다. 요청 시 원본 셀 값은 보내지 않아요.</small></div>';
+}
+
+function aiContext(kind, data, issue) {
+  const columns = profile(data);
+  const diagnostic = inspect(data,state.cutoff);
+  const roleCounts = {};
+  for (const col of columns) roleCounts[col.type] = (roleCounts[col.type] || 0) + 1;
+  const fields = data.headers.join(' ');
+  const domain = /내원|진료|환자|의료|천식|patient|visit_date/i.test(fields) ? '의료·진료로 추정' :
+    /거래|구매|환불|결제|transaction/i.test(fields) ? '거래·결제로 추정' : '도메인 미확인';
+  if (kind === 'summary') return {
+    domain, rows:data.rows.length, columns:data.headers.length, fieldTypeCounts:roleCounts,
+    blankCells:diagnostic.counts[1], numericOutlierCells:diagnostic.counts[0], duplicateRows:diagnostic.counts[3],
+    purpose:state.mode
+  };
+  if (kind === 'diagnosis') {
+    const allIssues = diagnostic.issues.map(item => issueForPurpose(item,data))
+      .sort((a,b) => {
+        const isTargetLabel = item => ['supervised','semisupervised'].includes(state.mode) &&
+          item.key.startsWith('missing') && data.headers[item.column] === state.label;
+        return Number(isTargetLabel(b))-Number(isTargetLabel(a)) || b.ids.length-a.ids.length;
+      });
+    return {
+      domain, rows:data.rows.length, columns:data.headers.length, fieldTypeCounts:roleCounts,
+      purpose:state.mode, label:state.label || null,
+      blankCells:diagnostic.counts[1], numericOutlierCells:diagnostic.counts[0],
+      duplicateRows:diagnostic.counts[3], conflictingRows:diagnostic.counts[2],
+      totalIssues:allIssues.length, includedIssues:Math.min(25,allIssues.length), omittedIssues:Math.max(0,allIssues.length-25),
+      issues:allIssues.slice(0,25).map(item => ({
+        category:category(item), title:item.title, column:Number.isInteger(item.column) ? data.headers[item.column] : null,
+        affectedRows:item.ids.length, evidence:item.evidence.slice(0,220),
+        possibleMethods:item.options.map(option => option.text).slice(0,5)
+      }))
+    };
+  }
+  const c = columns[issue.column];
+  const numericSummary = c?.type === 'numeric' && c.numbers.length >= 5 ? numberStats(c.numbers) : null;
+  const baseline = adviceFor(data,issue);
+  const recommendations = issue.options.filter(option => ['keep',baseline.id].includes(option.id));
+  const selection = issue.options.find(option => option.id === state.option) || issue.options[0];
+  const after = applyRule(data,comparisonRule(selection));
+  const measure = Number.isInteger(issue.column) ? measureColumn(after,issue.column) : null;
+  const methods = issue.options.map(option => {
+    const candidate = applyRule(data,comparisonRule(option));
+    const result = Number.isInteger(issue.column) ? measureColumn(candidate,issue.column) : null;
+    return {id:option.id,method:option.text,rowsAfter:candidate.rows.length,
+      blanksInFieldAfter:result?.missing ?? null,
+      numericMeanAfter:c?.type === 'numeric' ? result?.mean ?? null : null,
+      numericMedianAfter:c?.type === 'numeric' ? result?.median ?? null : null,
+      aggregateTotalAfter:c?.aggregate && result?.n >= 5 ? result.total : null};
+  });
+  return {
+    domain, purpose:state.mode, label:state.label || null, rows:data.rows.length,
+    problem:issue.title, category:category(issue), affectedRows:issue.ids.length,
+    evidence:issue.evidence, column:Number.isInteger(issue.column) ? data.headers[issue.column] : null,
+    fieldType:c?.type || 'unknown', aggregateField:c?.aggregate || false, blankCellsInField:c?.missing ?? null,
+    numericSummary:numericSummary ? {n:numericSummary.n,mean:numericSummary.mean,median:numericSummary.median,min:numericSummary.min,max:numericSummary.max} : null,
+    selectedMethod:selection.text, rowsAfter:after.rows.length, blanksInFieldAfter:measure?.missing ?? null,
+    aggregateTotalAfter:c?.aggregate && measure?.n >= 5 ? measure.total : null,
+    suggestedMethod:baseline.text, availableMethods:methods
+  };
+}
+
+async function explainWithAi(kind, button) {
+  const issue = kind === 'review' ? activeIssue() : undefined;
+  const key = aiKey(kind,issue);
+  const sessionState = state;
+  const context = aiContext(kind,current().data,issue);
+  const output = $('ai-output-' + kind);
+  button.disabled = true;
+  output.hidden = false;
+  output.textContent = '서버 AI API가 진단 요약을 살펴보고 있어요.';
+  let model;
+  try {
+    const task = kind === 'summary'
+      ? '데이터의 분야를 열 이름에 근거한 추정으로 설명하고, 행·열 구성 및 품질 지표가 무엇을 뜻하는지 쉬운 한국어 2~3문장으로 알려주세요.'
+      : kind === 'diagnosis'
+        ? '전달된 진단 후보를 검토해 해결 순서 가이드를 작성하세요. totalIssues와 omittedIssues를 확인하고, omittedIssues가 0보다 크면 제공되지 않은 항목 이름을 추정하지 말고 나머지는 목록에서 직접 검토하라고 밝혀주세요. 비슷한 문제는 컬럼이나 유형별로 묶고, 우선 확인할 문제 3~5개에 대해 발견 내용, 추천하는 확인/처리 방법, 그 이유를 간결히 설명하세요. 반드시 possibleMethods 안에 있는 선택지만 추천하고, 제거 전 원자료 검증이 필요한 항목을 구분하세요. 원본 셀을 확인했다고 말하지 마세요.'
+        : 'availableMethods를 비교해 가장 적절한 전처리 방향 하나를 method 이름으로 추천하고, 추천 이유와 가능한 위험을 설명하세요. selectedMethod와 rowsAfter, blanksInFieldAfter, numericMeanAfter, numericMedianAfter, aggregateTotalAfter를 비교해 What-if 결과를 해석하세요. 수치가 null이면 추정하지 마세요. 승인 전에 사용자가 확인해야 할 점을 한 문장으로 덧붙이세요.';
+    const systemPrompt = '당신은 초보 데이터 분석가를 돕는 한국어 데이터 품질 조력자입니다. 전달된 요약 통계와 진단 후보만 근거로 사용하세요. 원본 행을 읽었다고 주장하지 말고, 이상 후보를 오류로 단정하지 마세요. 제거·대체를 자동 적용하라고 지시하지 말고 반드시 원자료 확인과 사용자 승인을 안내하세요. 쉬운 한국어로 답하세요.';
+    const userPrompt = task + '\n전달된 분석 요약: ' + JSON.stringify(context);
+    let result, provider = 'AI API';
+    const response = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'system',content:systemPrompt},{role:'user',content:userPrompt}]})});
+    if (!response.ok) throw Error('api-' + response.status);
+    const payload = await response.json();
+    const content = payload.choices?.[0]?.message?.content;
+    result = (Array.isArray(content) ? content.map(part => part.text || '').join('') : content || '').trim().slice(0,1800);
+    if (!result) throw Error('empty');
+    if (state === sessionState) {
+      state.aiNotes.set(key,provider + ' 가이드 · ' + result);
+      if (output.isConnected) output.textContent = provider + ' 가이드 · ' + result;
+    }
+  } catch (error) {
+    if (output.isConnected) {
+      const message = error.message.startsWith('api-')
+        ? error.message === 'api-503' ? '서버 API 키가 설정되지 않았거나 AI 서버가 준비되지 않았어요. Render 환경 변수를 확인해 주세요.'
+          : error.message === 'api-429' ? '요청이 잠시 많아요. 잠시 후 다시 시도해 주세요.'
+          : 'AI API 요청에 실패했어요. Render 로그와 API 주소·모델 설정을 확인해 주세요.'
+        : 'AI 안내를 실행하지 못했어요. Render 서버 연결을 확인하고 다시 시도해 주세요.';
+      output.textContent = message;
+    }
+  } finally {
+    model?.destroy?.();
+    if (button.isConnected) button.disabled = false;
+  }
+}
+
+function issueForPurpose(issue, data) {
+  if (!issue.key.startsWith('missing') || !state.label || !['supervised','semisupervised'].includes(state.mode) ||
+      data.headers[issue.column] !== state.label) return issue;
+  const labeledRows = data.rows.length - issue.ids.length;
+  const title = state.mode === 'supervised' ? '학습 라벨이 비어 있어요 · ' : '일부 라벨이 비어 있어요 · ';
+  const evidence = state.mode === 'supervised'
+    ? '선택한 학습 라벨 「' + state.label + '」이 ' + issue.ids.length + '행에서 비어 있어요. 라벨 누락 행을 유지할지, 표시하거나 제외할지 학습 목적에 맞게 결정하세요.'
+    : '선택한 라벨 「' + state.label + '」은 ' + labeledRows + '행에 있고 ' + issue.ids.length + '행에는 없어요. 라벨 보유·미보유 행의 구성을 확인하세요.';
+  return {...issue,title:title + state.label,evidence,
+    options:issue.options.filter(option => ['keep','flag','remove'].includes(option.id))};
+}
+
+function renderReview(data, result) {
+  const issue = issueForPurpose(selectedIssue([...result.issues,privacyIssue(data)]),data);
+  const option = issue.options.find(o => o.id === state.option) || issue.options[0];
+  const advice = adviceFor(data,issue);
+  const lesson = issueLesson(issue);
+  const suggestion = issue.options.find(option => option.id === advice.id);
+  const relabel = option.id === 'relabel' ? '<div class="row action-row"><label class="field">대상 행<select id="labelRow">' +
+    option.ids.map(id => '<option value="' + id + '"' + (state.labelRow === id ? ' selected' : '') + '>' + id + '</option>').join('') +
+    '</select></label><label class="field">확인한 라벨<input id="labelEdit" maxlength="80" value="' + E(state.labelEdit) +
+    '" placeholder="원자료에서 확인한 값"></label></div>' : '';
+  return '<button class="plain" data-page="0">문제 목록</button>' + identity() + '<h1>' + E(issue.title) + '</h1>' + evidenceTables(data,issue) + '<p class="muted">' +
+    E(issue.evidence) + '</p>' +
+    (lesson ? '<details id="lesson" class="panel"><summary>' + (issue.key.startsWith('missing') ? '결측치가 뭔가요?' :
+      issue.key.startsWith('outlier') ? '이상치가 뭔가요?' : '완전 일치 행이 뭔가요?') + '</summary><p class="compact">' + E(lesson) + '</p></details>' : '') +
+    '<section class="panel recommendation"><div class="row spread"><h2>이 방법부터 살펴보세요</h2><span class="badge">데이터 기반 추천</span></div>' +
+    '<p><strong>' + E(suggestion?.text || '원자료 확인하기') + '</strong> · ' + E(advice.why) + '</p>' +
+    (suggestion && suggestion !== option ? '<button type="button" data-select-option="' + E(suggestion.id) + '">추천 방법 미리보기</button>' : '') +
+    aiBlock('review',issue) + '</section>' +
+    '<div class="split action-row"><section class="panel"><h2>어떻게 처리할까요?</h2><p class="muted">아래 방법을 고르면 결과를 먼저 볼 수 있어요.</p><div class="decision">' +
+    issue.options.map(o => '<label class="choice"><input type="radio" name="choice" data-option value="' + E(o.id) + '"' +
+    (o === option ? ' checked' : '') + '><span><strong>' + E(o.text) + '</strong>' +
+    '<small>' + E(optionDescription(o,issue)) + '</small></span></label>').join('') +
+    '</div>' + relabel + (issue.key === 'privacy' ? '<div class="action-row">' + privacyControls(data) + '</div>' : '') +
+    '</section><section class="panel"><div class="row spread"><h2>어떤 결과가 나오나요?</h2><span class="badge">What-if</span></div>' +
+    '<div id="comparison">' + impactDetails(data,issue,option) + '</div>' +
+    '<label class="field action-row"><span>이 방법을 선택한 이유 <span class="muted">(선택)</span></span><input id="reason" maxlength="200" value="' + E(state.reason) +
+    '" placeholder="예: 원출처 확인 전이라 빈칸을 남겨두기로 했어요"></label><div class="row action-row"><button class="primary" id="approve">이 방법으로 승인</button>' +
+    '<button class="plain" data-page="0">나중에 검토</button></div></section></div>' + methodMatrix(data,issue) + reviewDistribution(data,issue,option);
+}
+
+function renderHistory() {
+  return '<section class="panel"><div class="row spread"><h2>승인 이력과 복원</h2><button id="undo"' + (current().parent === null ? ' disabled' : '') +
+    '>최근 승인 취소</button></div><p class="muted">취소와 복원도 이력에 남습니다. 이전 버전에서 새로 승인하면 별도 버전이 생성됩니다.</p>' +
+    '<div class="table-wrap"><table><thead><tr><th>버전</th><th>상위 버전</th><th>승인 내용</th><th>행</th><th>복원</th></tr></thead><tbody>' +
+    [...state.versions].reverse().map(v => '<tr><td>v' + v.number + (v.number === state.version ? ' · 현재' : '') + '</td><td>' +
+      (v.parent === null ? '—' : 'v' + v.parent) + '</td><td>' + E(v.action) + '</td><td>' + v.data.rows.length + '</td><td><button data-restore="' +
+      v.number + '"' + (v.number === state.version ? ' disabled' : '') + '>이 버전 복원</button></td></tr>').join('') +
+    '</tbody></table></div></section><section class="panel"><h2>변경 기록</h2>' +
+    (state.audit.length ? '<ul>' + [...state.audit].reverse().map(log => '<li>v' + log.from + ' → v' + log.to + ' · ' +
+      E(log.action) + (log.reason ? ' · 사유 ' + E(log.reason) : '') + '</li>').join('') + '</ul>' : '<p>아직 승인하거나 복원한 기록이 없습니다.</p>') +
+    '</section><section class="panel"><h2>원본과 현재 버전 비교</h2>' + compare(state.versions[0].data,current().data,'원본','현재 버전') + '</section>';
+}
+
+function renderExport(data) {
+  const masked = current().steps.some(step => step.rule.id === 'pseudonym');
+  return '<section class="panel"><h2>전처리 전후 비교</h2>' + compare(state.versions[0].data,data,'원본','내보낼 데이터') +
+    '<details><summary>현재 데이터 미리보기</summary>' + table(data) + '</details></section><section class="panel"><h2>데이터셋과 검증 기록</h2>' +
+    '<p class="' + (masked ? 'muted' : 'warn') + '">' + (masked ?
+      '이 버전에는 가명처리 규칙이 적용되었습니다. 날짜, 연령, 자유기재 등 남은 열을 확인하세요.' :
+      '이 버전에는 가명처리 승인이 없습니다. 민감 데이터의 식별 정보를 확인하세요.') + '</p>' +
+    '<div class="row"><button class="primary" id="csv">CSV 다운로드</button><button id="report">검증 기록 JSON</button>' +
+    '<button id="recipe">재실행 코드 JS</button><button data-issue="privacy">가명처리 열기</button>' +
+    (state.kind === 'upload' ? '' : '<button id="sampleCsv">합성 원본 CSV</button>') + '</div></section>' +
+    '<section class="panel"><h2>기대효과와 활용</h2><ul><li>의료 연구에서 같은 환자의 방문 이력을 연결하고, 중증 기록이 삭제될 위험을 확인합니다.</li>' +
+    '<li>비즈니스 분석에서 환불을 유지해 매출·환불 집계 왜곡 가능성을 줄입니다.</li>' +
+    '<li>AI 학습에서 라벨 누락과 클래스 감소를 확인하고, 승인 규칙을 데이터셋 버전과 함께 전달합니다.</li></ul></section>';
+}
+
+function render() {
+  const hasData = Boolean(state);
+  const selected = !state || state.page === -1 ? 0 : state.page === 0 ? 1 : 2;
+  $('tabs').innerHTML = ['데이터 선택','문제 확인','해결 및 승인'].map((label,i) => {
+    const page = i === 0 ? -1 : i === 1 ? 0 : 1;
+    return '<button data-page="' + page + '"' + (i === selected ? ' aria-current="step"' : '') +
+      (i < selected ? ' class="done"' : '') + (!hasData && i > 0 ? ' disabled' : '') +
+      '><span class="step-num" aria-hidden="true">' + (i < selected ? '✓' : i+1) + '</span>' + label + '</button>';
+  }).join('');
+  document.querySelectorAll('[data-session]').forEach(button => button.disabled = !hasData);
+  $('entry').hidden = selected !== 0;
+  $('content').hidden = selected === 0;
+  $('guide').hidden = !hasData || selected === 0 || !state.demo;
+  $('purpose').hidden = true;
+  if (selected === 0) return;
+  const data = current().data;
+  if (state.demo) {
+    const tips = [
+      '반복 방문 문제를 열고 환자 ID와 방문 ID를 비교하세요.',
+      '개체당 첫 행만 유지할 때 중증 라벨이 사라지는 것을 확인한 뒤, 방문 단위 보존을 승인하세요.',
+      '최근 승인 취소와 버전 복원을 확인하고 결과를 여세요.',
+      '가명처리를 승인한 뒤 결과 CSV와 검증 기록을 저장할 수 있습니다.'
+    ];
+    const tip = state.page === 1 && state.issue === 'privacy' ? tips[3] : tips[state.page];
+    $('guide').innerHTML = '<p class="notice"><strong>3분 시연</strong> · ' + tip + '</p>';
+  }
+  if (state.page < 2) {
+    const result = inspect(data,state.cutoff);
+    $('content').innerHTML = state.page === 0 ? renderDiagnosis(data,result) : renderReview(data,result);
+  } else {
+    $('content').innerHTML = identity() + '<h1>' + (state.page === 2 ? '결정을 확인하세요.' : '데이터셋을 저장하세요.') + '</h1>' +
+      (state.page === 2 ? renderHistory() + '<div class="row"><button data-page="0">계속 검토</button><button class="primary" data-page="3">결과 보기</button></div>' : renderExport(data));
+  }
+}
+
+function move(page, issue = null) {
+  if (!state) return;
+  state.page = page;
+  state.issue = issue;
+  state.option = null;
+  state.reason = '';
+  state.labelEdit = '';
+  state.labelRow = null;
+  notify('');
+  render();
+  const heading = page < 0 ? $('entry-title') : $('content').querySelector('h1');
+  if (heading) {
+    heading.tabIndex = -1;
+    heading.focus();
+  }
+}
+
+function audit(action, from, to, reason = '') {
+  state.audit.push({action,from,to,reason,at:new Date().toISOString()});
+}
+
+function restore(number, action) {
+  if (number === state.version || !state.versions[number]) return;
+  audit(action,state.version,number);
+  state.version = number;
+  state.issueFilter = 'all';
+  state.maskColumn = null;
+  state.dropColumns = null;
+  render();
+  notify(action + ' · v' + number + ' 상태가 표시됩니다.');
+}
+
+function approve() {
+  const version = current(), data = version.data;
+  const issue = activeIssue();
+  const option = issue.options.find(o => o.id === state.option) || issue.options[0];
+  const rule = comparisonRule(option);
+  if (option.id === 'relabel' && rule.id === 'keep') {
+    notify('검토한 라벨을 입력해 주세요.',true);
+    $('labelEdit').focus();
+    return;
+  }
+  const reason = state.reason.trim();
+  const number = state.versions.length;
+  state.issueFilter = 'all';
+  const action = issue.title + ' · ' + rule.text +
+    (rule.id === 'relabel' ? ' (행 ' + rule.ids[0] + ')' : '');
+  state.versions.push({number,parent:state.version,data:applyRule(data,rule),action,
+    steps:[...version.steps,{rule,issue:issue.key}]});
+  audit(action,state.version,number,reason);
+  state.version = number;
+  move(2);
+  notify('선택을 승인했습니다. 현재 버전 v' + number);
+}
+
+function serializeCsv(data) {
+  const cell = value => {
+    const formula = /^[\t\r\n]/.test(value) || /^\s*[=+\-@＝＋－＠]/u.test(value);
+    const safe = formula && !numeric(value) ? "'" + value : value;
+    return '"' + safe.replaceAll('"','""') + '"';
+  };
+  return '\uFEFF' + [data.headers,...data.rows.map(r => r.cells)].map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
+}
+
+function download(name, content, type) {
+  const url = URL.createObjectURL(new Blob([content],{type}));
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = name;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url),1000);
+}
+
+function downloadCsv() {
+  download('dataclinic-v' + state.version + '.csv',serializeCsv(current().data),'text/csv;charset=utf-8');
+  notify('CSV를 준비했습니다. 스프레드시트에서 수식으로 실행될 수 있는 텍스트 앞에는 작은따옴표를 붙였습니다.');
+}
+
+function downloadReport() {
+  const version = current();
+  const {counts,checked} = inspect(version.data,state.cutoff);
+  const report = {version:state.version, mode:state.mode, label:state.label, cutoff:state.cutoff, referenceTables:state.references.length,
+    quality:quality.map(([dimension],i) => ({dimension,count:checked[i] ? counts[i] : null})),
+    steps:version.steps,audit:state.audit};
+  download('dataclinic-v' + state.version + '-report.json',JSON.stringify(report,null,2),'application/json');
+  notify('현재 버전의 승인 규칙과 전체 변경 이력 JSON을 준비했습니다.');
+}
+
+function downloadRecipe() {
+  const version = current();
+  const functions = [readNumber,parseCsv,fingerprint,applyRule,serializeCsv];
+  const definitions = ['const blank = ' + blank.toString(), 'const numeric = ' + numeric.toString(), ...functions.map(fn => fn.toString())];
+  const source = "'use strict';\nconst fs = require('node:fs');\nconst limits = " + JSON.stringify(limits) + ';\n' +
+    definitions.join('\n\n') + '\nconst steps = ' + JSON.stringify(version.steps,null,2) + ';\n' +
+    'const [input, output] = process.argv.slice(2);\n' +
+    'if (!input || !output || require("node:path").resolve(input) === require("node:path").resolve(output)) throw Error("Usage: node recipe.cjs original.csv result.csv");\n' +
+    'const bytes = fs.readFileSync(input); let source; try { source = new TextDecoder("utf-8",{fatal:true}).decode(bytes); } catch { source = new TextDecoder("euc-kr",{fatal:true}).decode(bytes); }\n' +
+    'const original = parseCsv(source);\n' +
+    'if (fingerprint(original) !== ' + JSON.stringify(state.sourceHash) + ') throw Error("Use the same source CSV in the original row order.");\n' +
+    'const result = steps.reduce((data,step) => applyRule(data,step.rule),original);\n' +
+    'fs.writeFileSync(output,serializeCsv(result),{flag:"wx"});\n';
+  download('dataclinic-v' + state.version + '-recipe.cjs',source,'text/javascript');
+  notify('재실행 코드를 준비했습니다. Node.js에서 원본 CSV와 새 결과 경로를 인수로 실행하세요.');
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.hasAttribute('data-original-file') && state) {
+    showOriginalPage(1);
+    $('originalDialog').showModal();
+    return;
+  }
+  if (b.dataset.ai && state) { void explainWithAi(b.dataset.ai,b); return; }
+  if (b.dataset.selectOption !== undefined && state) {
+    selectOption(b.dataset.selectOption);
+    return;
+  }
+  if (b.id === 'pick') { $('upload').click(); return; }
+  if (b.dataset.evidencePage !== undefined && state) { state.evidencePage = Number(b.dataset.evidencePage); render(); $("evidence")?.scrollIntoView({block:"nearest"}); return; }
+  if (b.hasAttribute('data-hist-reset')) {
+    updateHistogram(null,'histReset');
+    return;
+  }
+  if (b.id === 'expandIssues') { state.expanded = !state.expanded; render(); $('expandIssues')?.focus(); return; }
+  if (b.id === 'aiSettings') {
+    $('aiApiDialog').showModal();
+    void refreshAiApiConfig();
+    return;
+  }
+  if (b.id === 'refreshAiApi') { void refreshAiApiConfig(); return; }
+  if (e.target.closest('[data-close-ai]')) { $('aiApiDialog').close(); return; }
+  $('advanced').open = false;
+  if (b.dataset.load) { loadSample(b.dataset.load); move(0); $('upload').value = ''; }
+  else if (b.dataset.page !== undefined) move(Number(b.dataset.page));
+  else if (b.dataset.issue && state.page !== 1) { state.evidencePage = 0; move(1,b.dataset.issue); }
+  else if (b.dataset.issue) {
+    state.issue = b.dataset.issue;
+    state.evidencePage = 0;
+    state.option = null;
+    state.reason = '';
+    state.labelEdit = '';
+    state.labelRow = null;
+    notify('');
+    render();
+    [...$('content').querySelectorAll('button[data-issue]')].find(button => button.dataset.issue === state.issue)?.focus();
+  }
+  else if (b.dataset.restore !== undefined) restore(Number(b.dataset.restore),'버전 복원');
+  else if (b.id === 'demo') { loadSample('medical',true); move(0); $('upload').value = ''; }
+  else if (b.id === 'undo') restore(current().parent,'최근 승인 취소');
+  else if (b.id === 'approve') approve();
+  else if (b.id === 'source') {
+    const copy = sourceTemplate.cloneNode(true);
+    copy.querySelector('script').textContent = sourceScript.textContent;
+    download('DataClinic.html','<!doctype html>\n' + copy.outerHTML,'text/html;charset=utf-8');
+  }
+  else if (b.id === 'csv') downloadCsv();
+  else if (b.id === 'report') downloadReport();
+  else if (b.id === 'recipe') downloadRecipe();
+  else if (b.id === 'sampleCsv' && samples[state.kind]) {
+    download('dataclinic-' + state.kind + '-original.csv',samples[state.kind].csv,'text/csv;charset=utf-8');
+  }
+});
+
+document.addEventListener('input', e => {
+  if (e.target.id === 'reason') state.reason = e.target.value;
+  if (e.target.id === 'labelEdit') {
+    state.labelEdit = e.target.value;
+    const data = current().data;
+    const issue = inspect(data,state.cutoff).issues.find(candidate => candidate.key === state.issue) || selectedIssue(inspect(data,state.cutoff).issues);
+    const option = issue?.options.find(o => o.id === 'relabel');
+    if (option) {
+      $('comparison').innerHTML = impactDetails(data,issue,option);
+      refreshDistribution(data,issue,option);
+    }
+  }
+});
+
+$('originalPrev').addEventListener('click', () => showOriginalPage(originalPage-1));
+$('originalNext').addEventListener('click', () => showOriginalPage(originalPage+1));
+$('originalPager').addEventListener('submit', event => {
+  event.preventDefault();
+  showOriginalPage($('originalPage').valueAsNumber);
+});
+$('originalDialog').addEventListener('close', () => {
+  $('originalTable').replaceChildren();
+});
+
+function selectOption(value) {
+  state.option = value;
+  const open = ['matrix','evidence','lesson','distribution'].filter(id => $(id)?.open);
+  render();
+  for (const id of open) if ($(id)) $(id).open = true;
+  document.querySelector('input[name="choice"]:checked')?.focus({preventScroll:true});
+}
+
+document.addEventListener('click', e => {
+  const trigger = e.target.closest('[data-profile]');
+  if (trigger && state) {
+    const dialog = $('columnProfileDialog-' + trigger.dataset.profile);
+    if (dialog && !dialog.open) dialog.showModal();
+    return;
+  }
+  const close = e.target.closest('[data-close-profile]');
+  if (close) $('columnProfileDialog-' + close.dataset.closeProfile)?.close();
+});
+
+function updateHistogram(range, focusId) {
+  const data = current().data, issue = activeIssue();
+  const option = issue.options.find(item => item.id === state.option) || issue.options[0];
+  const key = state.version + ':' + issue.column;
+  state.chartRanges ??= new Map();
+  if (range === null) state.chartRanges.delete(key);
+  else if (range) state.chartRanges.set(key,range);
+  refreshDistribution(data,issue,option,focusId);
+}
+
+document.addEventListener('submit', event => {
+  if (event.target.id !== 'histForm') return;
+  event.preventDefault();
+  const min = $('histMin').valueAsNumber, max = $('histMax').valueAsNumber;
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max < min) {
+    const error = $('histError');
+    error.textContent = '시작과 끝에 숫자를 입력하세요. 끝 값은 시작 값 이상이어야 합니다.';
+    error.hidden = false;
+    $(Number.isFinite(min) ? 'histMax' : 'histMin').focus();
+    return;
+  }
+  updateHistogram({min,max},'histApply');
+});
+
+document.addEventListener('change', async e => {
+  const target = e.target;
+  if (target.id === 'upload') {
+    await importFiles([...target.files]);
+    target.value = '';
+    return;
+  }
+  if (!state) return;
+  const data = current().data;
+  if (target.dataset.option !== undefined) {
+    selectOption(target.value);
+    return;
+  }
+  if (target.id === 'issueFilter') state.issueFilter = target.value;
+  else if (target.id === 'mode') { state.mode = target.value; if (!['supervised','semisupervised'].includes(state.mode)) state.label = ''; state.issueFilter = 'all'; state.expanded = true; }
+  else if (target.id === 'label') { state.label = target.value; state.issueFilter = 'all'; state.expanded = true; }
+  else if (target.id === 'cutoff' && dateOk(target.value)) state.cutoff = target.value;
+  else if (target.dataset.histSeries) {
+    state.histSeries = {...state.histSeries,[target.dataset.histSeries]:target.checked};
+    updateHistogram(undefined,target.id);
+    return;
+  }
+  else if (target.id === 'option') state.option = target.value;
+  else if (target.id === 'labelRow') state.labelRow = Number(target.value);
+  else if (target.id === 'maskColumn') {
+    state.maskColumn = /^\d+$/.test(target.value) ? data.headers[Number(target.value)] : (target.value === 'auto' ? null : '');
+    state.option = null;
+  }
+  else if (target.dataset.drop !== undefined) {
+    state.dropColumns = [...$('content').querySelectorAll('[data-drop]:checked')].map(box => data.headers[Number(box.dataset.drop)]);
+    state.option = null;
+    render();
+    const box = $('content').querySelector('[data-drop="' + target.dataset.drop + '"]');
+    box.closest('details').open = true;
+    box.focus();
+    return;
+  }
+  else return;
+  render();
+  if (target.id === 'mode' || target.id === 'label') $('purposeDetails').open = true;
+  if (target.id === 'cutoff') $('qualityDetails').open = true;
+  $(target.id)?.focus();
+});
+
+
+async function importFiles(files) {
+  if (!files.length) return;
+  const sequence = ++loadSequence;
+  try {
+    const totalBytes = files.reduce((total,file) => total + file.size,0);
+    if (files.length > 6) throw Error('한 번에 최대 6개 CSV 파일까지 선택할 수 있습니다.');
+    if (totalBytes > limits.bytes) throw Error('선택한 파일 전체 크기는 100MB 이하여야 합니다.');
+    const tables = [];
+    let totalRows = 0;
+    for (let index=0;index<files.length;index++) {
+      if (sequence !== loadSequence) return;
+      const file = files[index];
+      notify('파일 읽는 중 · ' + (index+1) + ' / ' + files.length + ' · ' + file.name);
+      await new Promise(resolve => setTimeout(resolve,0));
+      try {
+        let bytes = await file.arrayBuffer();
+        let csv;
+        try { csv = new TextDecoder('utf-8',{fatal:true}).decode(bytes); }
+        catch { csv = new TextDecoder('euc-kr',{fatal:true}).decode(bytes); }
+        const data = parseCsv(csv);
+        csv = '';
+        bytes = null;
+        totalRows += data.rows.length;
+        if (totalRows > limits.totalRows) throw Error('선택한 파일의 전체 데이터 행은 최대 ' + limits.totalRows.toLocaleString('ko-KR') + '개까지 지원합니다.');
+        tables.push({title:file.name,data});
+      } catch (error) {
+        throw Error(file.name + ' · ' + error.message);
+      }
+    }
+    if (sequence !== loadSequence) return;
+    const [primary,...references] = tables;
+    load('upload',primary.data,primary.title,false,references);
+    move(0);
+  } catch (error) {
+    if (sequence === loadSequence) notify('CSV를 열 수 없습니다. ' + error.message,true);
+  }
+}
+const drop = $('drop');
+drop.addEventListener('dragover', event => { event.preventDefault(); drop.classList.add('hover'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
+drop.addEventListener('drop', event => {
+  event.preventDefault();
+  drop.classList.remove('hover');
+  void importFiles([...event.dataTransfer.files]);
+});
+render();
+</script></body></html>
+
+
+
