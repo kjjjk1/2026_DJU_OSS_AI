@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CSV 품질 문제를 찾고 전처리 방법별 영향을 비교하는 DataClinic 프로젝트입니다.">
+  <title>DataClinic | 2026 DJU OSS·AI 해커톤</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f7f7; color: #163536; font: 16px/1.65 system-ui, sans-serif; }
+    header { background: #fff; border-bottom: 1px solid #d9e6e4; }
+    header div, main { width: min(100% - 2rem, 54rem); margin-inline: auto; }
+    header div { padding-block: .8rem; font-weight: 750; }
+    main { padding-block: clamp(2rem, 8vw, 5rem) 3rem; }
+    h1, h2, h3 { line-height: 1.2; }
+    h1 { font-size: clamp(2.8rem, 9vw, 5rem); letter-spacing: -.05em; margin: 0; }
+    h2 { margin-top: 2.7rem; }
+    h3 { margin-top: 0; }
+    .intro { max-width: 42rem; }
+    .label { color: #066a60; font-weight: 700; }
+    .actions, .cards { display: flex; flex-wrap: wrap; gap: .75rem; }
+    .actions { align-items: center; margin-top: 1.4rem; }
+    .card { flex: 1 1 14rem; padding: 1rem; background: #fff; border: 1px solid #d9e6e4; border-radius: .75rem; }
+    .card p { margin-bottom: 0; }
+    a { color: #066a60; text-underline-offset: .16em; }
+    a:focus-visible { outline: 3px solid #197c71; outline-offset: 4px; }
+    .button { padding: .55rem .95rem; border-radius: .55rem; background: #066a60; color: #fff; font-weight: 700; text-decoration: none; }
+    .button:hover { background: #124f48; }
+    li + li { margin-top: .4rem; }
+  </style>
+</head>
+<body>
+  <header><div>2026 DJU OSS·AI 해커톤</div></header>
+  <main>
+    <section class="intro" aria-labelledby="title">
+      <h1 id="title">DataClinic</h1>
+      <p class="label">AI 기반 데이터 정제 의사결정 지원 서비스</p>
+      <p>CSV에서 결측값, 중복 행, 이상 후보를 찾고 처리 방법에 따라 결과가 어떻게 달라지는지 미리 비교하세요. AI가 추천 근거와 주의사항을 설명하면, 사용자가 원자료를 확인하고 적용할 방법을 결정할 수 있습니다.</p>
+      <div class="actions">
+        <a class="button" id="demo-link" href="https://github.com/kjjjk1/2026_DJU_OSS_AI/blob/main/docs/demo.md">시연 안내</a>
+        <a href="https://github.com/kjjjk1/2026_DJU_OSS_AI">GitHub 저장소</a>
+      </div>
+      <p>공개 시연 주소는 Render 배포 후 추가됩니다.</p>
+    </section>
+
+    <section aria-labelledby="features">
+      <h2 id="features">주요 기능</h2>
+      <div class="cards">
+        <article class="card"><h3>CSV 품질 진단</h3><p>파일을 불러오거나 내장 샘플을 선택해 결측값, 중복·충돌 행, 수치형 이상 후보를 확인합니다.</p></article>
+        <article class="card"><h3>처리 방법 비교</h3><p>행 수, 결측값 수, 주요 통계가 어떻게 변하는지 살펴보고 AI 안내에서 선택의 근거를 확인합니다.</p></article>
+        <article class="card"><h3>승인과 내보내기</h3><p>선택한 처리 방법을 승인하고, 이력을 확인하거나 이전 버전으로 복원한 뒤 결과를 CSV로 저장합니다.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="materials">
+      <h2 id="materials">제출 자료</h2>
+      <ul>
+        <li><a href="https://github.com/kjjjk1/2026_DJU_OSS_AI/blob/main/docs/plan.md">프로젝트 계획서</a></li>
+        <li><a href="https://github.com/kjjjk1/2026_DJU_OSS_AI/blob/main/docs/final-report.md">최종 결과보고서</a></li>
+        <li><a href="https://github.com/kjjjk1/2026_DJU_OSS_AI/blob/main/docs/presentation.md">발표 구성안</a></li>
+        <li><a href="https://github.com/kjjjk1/2026_DJU_OSS_AI/tree/main/src">소스 코드와 실행 방법</a></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
