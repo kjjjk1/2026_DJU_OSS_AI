@@ -38,8 +38,12 @@
   <section id="entry" class="entry">
     <div class="intro"><div class="eyebrow">검증 가능한 데이터 전처리</div><h1 id="entry-title">데이터를 올려주세요.</h1><p class="muted">문제를 찾고, 처리 방법과 결과를 비교해 보세요.</p></div>
     <div class="drop" id="drop"><span class="upload-icon" aria-hidden="true">⇧</span><h2>CSV 파일을 여기에 놓거나 선택하세요</h2><p class="muted">여러 파일을 선택하면 첫 파일을 진단하고 나머지는 근거로 조회합니다.</p><button class="primary" id="pick">파일 선택</button><input type="file" id="upload" accept=".csv,text/csv" multiple="" hidden=""><small>브라우저에서 처리 · 최대 6개, 파일 합계 100MB · 파일당 20만 행·150열, 전체 30만 행까지 · 원본은 그대로 유지</small></div>
-    <section class="demo-card row spread"><div><h2>해커톤 3분 시연</h2><p class="muted">천식 진료 기록을 비교하고 중증 라벨의 변화를 확인합니다.</p></div><button id="demo">천식 시연 시작</button></section>
-    <div class="row sample-row"><small>샘플로 시작하기</small><button data-load="trade">거래 데이터</button><button data-load="medical">의료 데이터</button><button data-load="aggregate">내원일수 집계</button></div>
+    <section class="demo-card" aria-labelledby="hackathon-demo">
+      <h2 id="hackathon-demo">해커톤 3분 시연</h2>
+      <p class="muted">홈페이지가 없는 병원 기록을 제외하면 전국 의료기관 수가 얼마나 달라질까요? 행 제외와 결측 표시 추가를 비교하고, 집계 목적에 맞는 방법을 승인해 보세요.</p>
+      <div class="row action-row"><button class="primary" id="hospitalDemo">병원 CSV 열기</button><small>파일 선택 창에서 병원정보서비스 원본 CSV를 선택하세요.</small></div>
+    </section>
+    <div class="row sample-row"><small>내장 샘플</small><button id="demo">천식 라벨 시연</button><button data-load="trade">거래 데이터</button><button data-load="medical">의료 데이터</button><button data-load="aggregate">내원일수 집계</button></div>
   </section>
   <div id="content" hidden=""></div>
   <section id="purpose" hidden=""></section>
@@ -1570,7 +1574,7 @@ document.addEventListener('click', e => {
     selectOption(b.dataset.selectOption);
     return;
   }
-  if (b.id === 'pick') { $('upload').click(); return; }
+  if (b.id === 'pick' || b.id === 'hospitalDemo') { $('upload').click(); return; }
   if (b.dataset.evidencePage !== undefined && state) { state.evidencePage = Number(b.dataset.evidencePage); render(); $("evidence")?.scrollIntoView({block:"nearest"}); return; }
   if (b.hasAttribute('data-hist-reset')) {
     updateHistogram(null,'histReset');
