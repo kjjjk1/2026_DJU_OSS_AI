@@ -123,6 +123,16 @@ const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const E = escapeHtml;
 const blank = v => v.trim() === '';
+
+function datasetSchema(headers) {
+  const names = new Set(headers.map(name => name.toLowerCase()));
+  return ['encounter_id','patient_nbr','age','diag_1','diag_2','diag_3','readmitted']
+    .every(name => names.has(name)) ? 'uci-diabetes-130' : null;
+}
+
+function isMissing(data, value) {
+  return blank(value) || (data.schema === 'uci-diabetes-130' && value.trim() === '?');
+}
 function readNumber(value) {
   const clean = value.trim();
   if (/^[+-]?(?:\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(clean)) return Number(clean.replaceAll(',',''));
@@ -183,7 +193,8 @@ function classifyHeader(header) {
 function profile(data) {
   if (dataProfiles.has(data)) return dataProfiles.get(data);
   const columns = data.headers.map((name,i) => {
-    const role = classifyHeader(name);
+    const role = data.schema === 'uci-diabetes-130' && /^(age|weight|diag_[123]|payer_code|medical_specialty|max_glu_serum|a1cresult|readmitted)$/i.test(name)
+      ? 'category' : classifyHeader(name);
     const counts = new Map();
     const numbers = [];
     let missing = 0;
@@ -191,7 +202,7 @@ function profile(data) {
     let minDate = '', maxDate = '';
     for (const row of data.rows) {
       const v = row.cells[i];
-      if (blank(v)) { missing++; continue; }
+      if (isMissing(data,v)) { missing++; continue; }
       counts.set(v,(counts.get(v) || 0)+1);
       if (numeric(v)) numbers.push(readNumber(v));
       if (dateOk(v)) {
@@ -311,7 +322,8 @@ function missingMethods(data, column, ids) {
       options.push({...replacement(id,title,ids,column,rounded ? Math.round(value) : value),rounded,calculated:value});
     }
   }
-  if (c.type === 'category' && c.modeCount > 1 && c.ties === 1) {
+  const clinicalValue = data.schema === 'uci-diabetes-130' && /^(diag_[123]|max_glu_serum|a1cresult|readmitted)$/i.test(c.name);
+  if (!clinicalValue && c.type === 'category' && c.modeCount > 1 && c.ties === 1) {
     options.push(replacement('mode','가장 자주 나타난 값으로 채우기',ids,column,c.mode));
   }
   return options;
@@ -429,14 +441,14 @@ function parseCsv(input) {
     throw Error('헤더에 빈 이름이나 중복 이름이 있습니다.');
   }
   if (records.some(row => row.length !== headers.length)) throw Error('모든 행의 열 개수가 헤더와 같아야 합니다.');
-  return {headers, rows: records.map((cells,i) => ({id:i + 1, cells}))};
+  return {headers, schema:datasetSchema(headers), rows: records.map((cells,i) => ({id:i + 1, cells}))};
 }
 
 function indices(headers) {
   const find = pattern => headers.findIndex(h => pattern.test(h));
   return {
-    id:find(/^(patient_id|customer_id|환자번호|고객번호|환자id|고객id)$/i),
-    event:find(/^(visit_id|transaction_id|방문번호|거래번호)$/i),
+    id:find(/^(patient_id|patient_nbr|customer_id|환자번호|고객번호|환자id|고객id)$/i),
+    event:find(/^(visit_id|encounter_id|transaction_id|방문번호|거래번호)$/i),
     date:find(/^(date|visit_date|transaction_date|created_at|updated_at|날짜|진료일|거래일|갱신일)$/i),
     label:find(/^(label|target|class|라벨|정답)$/i),
     note:find(/^(note|notes|memo|text|comment|description|메모|진료기록|텍스트|비고)$/i),
@@ -466,15 +478,17 @@ function inspect(data, cutoff) {
   if (cached?.cutoff === cutoff) return cached.result;
   const {headers,rows} = data, cols = indices(headers);
   const counts = Array(6).fill(0), checked = [false,true,false,true,false,false];
+  const encounterData = data.schema === 'uci-diabetes-130';
   const issues = [], seen = new Map(), repeats = new Map();
   const groups = new Map();
   function add(key, title, evidence, options, ids, column) {
     issues.push({key,title,evidence,options,ids,column});
   }
   const columns = profile(data);
-  const numericColumns = columns.map((column,i) => [cols.age,cols.cost,cols.amount].includes(i) || column.type === 'numeric');
+  const numericColumns = columns.map((column,i) => column.type === 'numeric' ||
+    [cols.cost,cols.amount].includes(i) || (!encounterData && i === cols.age));
   checked[4] = cols.date >= 0 || [cols.age,cols.cost,cols.amount].some(i => i >= 0) || numericColumns.includes(true);
-  checked[2] = (cols.type >= 0 && cols.amount >= 0) || (cols.note >= 0 && cols.label >= 0 && (state.kind === 'medical' || cols.id >= 0 && /patient|환자/i.test(headers[cols.id])));
+  checked[2] = encounterData || (cols.type >= 0 && cols.amount >= 0) || (cols.note >= 0 && cols.label >= 0 && (state.kind === 'medical' || cols.id >= 0 && /patient|환자/i.test(headers[cols.id])));
   checked[5] = cols.date >= 0;
   const outliers = new Map(), missing = new Map(), invalid = new Map();
   const outlierChecks = [];
@@ -488,14 +502,14 @@ function inspect(data, cutoff) {
     const signature = JSON.stringify(v);
     if (seen.has(signature)) duplicates.push(row.id);
     else seen.set(signature,row.id);
-    if (cols.id >= 0 && !blank(v[cols.id])) {
+    if (cols.id >= 0 && !isMissing(data,v[cols.id])) {
       if (!groups.has(v[cols.id])) groups.set(v[cols.id],[]);
       groups.get(v[cols.id]).push(row);
     }
     v.forEach((value,i) => {
-      if (blank(value)) { counts[1]++; collect(missing,i,row.id); return; }
+      if (isMissing(data,value)) { counts[1]++; collect(missing,i,row.id); return; }
       const invalidNumeric = numericColumns[i] && !numeric(value);
-      const badAge = i === cols.age && numeric(value) && (!Number.isInteger(readNumber(value)) || readNumber(value)<0 || readNumber(value)>120);
+      const badAge = !encounterData && i === cols.age && numeric(value) && (!Number.isInteger(readNumber(value)) || readNumber(value)<0 || readNumber(value)>120);
       const badCost = i === cols.cost && numeric(value) && readNumber(value)<0;
       const badDate = i === cols.date && !dateOk(value);
       if (invalidNumeric || badAge || badCost || badDate) { counts[4]++; collect(invalid,i,row.id); }
@@ -553,7 +567,7 @@ function inspect(data, cutoff) {
     [{id:'keep',text:'현재 기록 유지 · 원자료 확인 필요'}],referenceConflicts
   );
   for (const group of groups.values()) {
-    if (cols.event < 0) continue;
+    if (cols.event < 0 || encounterData) continue;
     const events = new Set(group.map(r => r.cells[cols.event]).filter(v => !blank(v)));
     if (events.size > 1) repeats.set(group[0].id, group.map(r => r.id));
   }
@@ -564,6 +578,21 @@ function inspect(data, cutoff) {
       '동일 개체에 서로 다른 이벤트 ID ' + (cols.date >= 0 ? '와 날짜가 표시됩니다. ' : '가 표시됩니다. ') +
       '개체 ID만으로 중복을 제거하면 개별 이벤트와 해당 라벨이 사라질 수 있습니다.',
       [{id:'keep',text:'방문·거래 단위 보존'},{id:'remove',text:'개체당 첫 행만 유지',ids:[...repeats.values()].flatMap(group => group.slice(1))}],ids);
+  }
+  let conflictingEncounters = [];
+  if (encounterData && cols.event >= 0) {
+    const encounterGroups = new Map();
+    for (const row of rows) {
+      const encounter = row.cells[cols.event];
+      if (!isMissing(data,encounter)) collect(encounterGroups,encounter,row.id);
+    }
+    const exactDuplicateIds = new Set(duplicates);
+    conflictingEncounters = [...encounterGroups.values()]
+      .map(ids => ids.filter(id => !exactDuplicateIds.has(id)))
+      .filter(ids => ids.length > 1).flat();
+    if (conflictingEncounters.length) add('encounter-conflict','같은 입원 ID에 서로 다른 기록이 있어요',
+      '같은 encounter_id에서 값이 서로 다른 행을 찾았습니다. patient_nbr가 같아도 입원 ID가 다르면 별개의 입원입니다.',
+      [{id:'keep',text:'현재 기록 유지 · 원자료 확인 필요'}],conflictingEncounters,cols.event);
   }
   if (duplicates.length) {
     const duplicateIds = new Set(duplicates);
@@ -598,12 +627,15 @@ function inspect(data, cutoff) {
   for (const [i,{ids,validRows,bounds}] of outliers) {
     counts[0] += ids.length;
     const {options,evidence} = outlierMethods(i,ids,validRows,bounds);
-    add('outlier-' + i,'유난히 크거나 작은 값 · ' + headers[i],evidence,options,ids,i);
+    add('outlier-' + i,'분포에서 벗어난 값 · ' + headers[i],
+      evidence + (encounterData ? ' 입원 특성과 같은 유형의 기록을 확인하세요.' : ''),
+      encounterData ? options.filter(option => ['keep','flag'].includes(option.id)) : options,ids,i);
   }
   for (const [i,ids] of missing) {
-    add('missing-' + i,'값이 비어 있어요 · ' + headers[i],
+    add('missing-' + i,(encounterData ? '결측 또는 미기록 값 · ' : '값이 비어 있어요 · ') + headers[i],
       rows.length + '개 기록 중 ' + ids.length + '개(' + percent(ids.length,rows.length) +
-      ')가 비어 있어요. 이 값이 어디서 누락됐는지 확인하면 처리 방법을 고르기 쉬워요.',
+      (encounterData ? ')가 빈 값 또는 ?로 기록됐어요. 누락인지, 검사 미실시처럼 별도의 의미가 있는지 원자료를 확인하세요.' :
+        ')가 비어 있어요. 이 값이 어디서 누락됐는지 확인하면 처리 방법을 고르기 쉬워요.'),
       missingMethods(data,i,ids),ids,i);
   }
   for (const [i,ids] of invalid) {
@@ -614,7 +646,7 @@ function inspect(data, cutoff) {
     add('stale','기준일 이전 기록','설정한 기준일 ' + cutoff + '보다 이른 기록입니다.',
       [keep,{id:'remove',text:'기준일 이전 행 제거',ids:stale}],stale);
   }
-  counts[2] = new Set([...conflicts.map(c => c.id),...referenceConflicts]).size;
+  counts[2] = new Set([...conflicts.map(c => c.id),...referenceConflicts,...conflictingEncounters]).size;
   counts[3] = duplicates.length;
   counts[5] = stale.length;
   const result = {counts,checked,issues,outlierChecks};
@@ -644,10 +676,11 @@ function applyRule(data, rule) {
   if (rule.id === 'pseudonym') {
     const tokens = new Map(), drop = new Set(rule.drop || []);
     return {
+      ...data,
       headers:data.headers.filter((_,i) => !drop.has(i)),
       rows:data.rows.map(r => {
         const cells = [...r.cells];
-        if (rule.column >= 0 && !blank(cells[rule.column])) {
+        if (rule.column >= 0 && !isMissing(data,cells[rule.column])) {
           const raw = cells[rule.column];
           if (!tokens.has(raw)) tokens.set(raw,'DC-' + String(tokens.size + 1).padStart(4,'0'));
           cells[rule.column] = tokens.get(raw);
@@ -718,7 +751,7 @@ function table(data, ids = [], limit = 12, {offset = 0, label = '데이터 행 �
   return '<div class="table-wrap" tabindex="0" aria-label="' + E(label) + '"><table><thead><tr><th scope="col">원본 행</th>' +
     data.headers.map(h => '<th scope="col">' + E(h) + '</th>').join('') + '</tr></thead><tbody>' +
     rows.slice(offset,offset+limit).map(r => '<tr' + (matches.has(r.id) ? ' class="highlight"' : '') + '><th scope="row">' + r.id + '</th>' +
-      r.cells.map(v => '<td>' + (blank(v) ? '<span class="warn">결측</span>' : E(v)) + '</td>').join('') + '</tr>').join('') +
+      r.cells.map(v => '<td>' + (isMissing(data,v) ? '<span class="warn">결측</span>' : E(v)) + '</td>').join('') + '</tr>').join('') +
     '</tbody></table></div>' +
     (showCount ? '<small>' + Math.min(limit,rows.length) + ' / ' + rows.length + '행 표시</small>' : '');
 }
@@ -728,10 +761,10 @@ function stats(data) {
   const groups = new Map();
   let missing = 0, unlabeled = 0;
   for (const r of data.rows) {
-    missing += r.cells.filter(blank).length;
+    missing += r.cells.filter(value => isMissing(data,value)).length;
     if (label >= 0) {
       const value = r.cells[label];
-      if (blank(value)) unlabeled++;
+      if (isMissing(data,value)) unlabeled++;
       else groups.set(value, (groups.get(value) || 0) + 1);
     }
   }
@@ -916,7 +949,9 @@ function renderDiagnosis(data, result) {
     '>' + (value === 'all' ? '전체' : E(value)) + '</option>').join('') + '</select></label>' : '';
   return identity() + '<h1>' + (pending.length ? '함께 살펴볼 기록이 있어요.' : '검토할 새 후보가 없어요.') +
     '</h1><p class="muted">' + data.rows.length + '행 · ' + (state.references.length+1) + '개 테이블 · 승인 ' + current().steps.length + '건</p>' +
-    dataOverview(data,result) + renderPurpose(data) + renderOutlierChecks(result.outlierChecks) +
+    dataOverview(data,result) + renderPurpose(data) +
+    (data.schema === 'uci-diabetes-130' ? '<p class="notice">UCI 당뇨병 입원 데이터 형식이 감지되었습니다. 한 행은 입원 기록 하나입니다. 같은 환자의 다른 입원은 중복으로 보지 않고, 나이 구간·진단 코드는 범주로, 빈 값과 ?는 결측으로 처리합니다. <a href="https://archive.ics.uci.edu/dataset/296/diabetes-130-us-hospitals-for-years-1999-2008" target="_blank" rel="noopener noreferrer">UCI 데이터 설명</a></p>' : '') +
+    renderOutlierChecks(result.outlierChecks) +
     '<details class="panel"><summary>현재 데이터 미리보기</summary>' + table(data,[],5) + '</details>' + purposeLabelSummary(data) +
     '<section class="panel"><div class="row spread"><h2>검토할 문제 ' + pending.length + '개</h2><div class="row">' + filter +
     '<button class="plain" data-issue="privacy">가명처리</button></div></div><p class="muted">문제를 열면 어떤 뜻인지, 어떻게 처리할 수 있는지 함께 볼 수 있어요.</p>' +
@@ -981,7 +1016,7 @@ function measureColumn(data, index) {
   const frequencies = new Map(), numbers = [];
   for (const row of data.rows) {
     const value = row.cells[index];
-    if (blank(value)) missing++;
+    if (isMissing(data,value)) missing++;
     else {
       frequencies.set(value,(frequencies.get(value) || 0)+1);
       if (numeric(value)) numbers.push(readNumber(value));
@@ -1506,7 +1541,7 @@ function downloadReport() {
 
 function downloadRecipe() {
   const version = current();
-  const functions = [readNumber,parseCsv,fingerprint,applyRule,serializeCsv];
+  const functions = [readNumber,datasetSchema,isMissing,parseCsv,fingerprint,applyRule,serializeCsv];
   const definitions = ['const blank = ' + blank.toString(), 'const numeric = ' + numeric.toString(), ...functions.map(fn => fn.toString())];
   const source = "'use strict';\nconst fs = require('node:fs');\nconst limits = " + JSON.stringify(limits) + ';\n' +
     definitions.join('\n\n') + '\nconst steps = ' + JSON.stringify(version.steps,null,2) + ';\n' +
