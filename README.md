@@ -51,11 +51,11 @@ CSV 업로드 또는 예시 선택 → 분석 목적 입력 → 데이터 품질
 
 ## 실행 및 배포
 
-현재 프로토타입 파일은 별도 작업 폴더에 준비되어 있으며, 이 저장소에는 아직 앱 코드가 반영되지 않았습니다. GitHub에 다음 파일을 추가한 뒤 배포할 수 있습니다.
+프로토타입과 Render용 Node.js 서버 파일을 이 저장소의 src/에 반영했습니다.
 
-- DataClinic-보완.html
-- server.mjs
-- package.json
+- [src/DataClinic-보완.html](src/DataClinic-보완.html)
+- [src/server.mjs](src/server.mjs)
+- [src/package.json](src/package.json)
 
 ### 로컬 실행
 
@@ -69,8 +69,8 @@ API 키를 HTML이나 GitHub 저장소에 입력하지 마세요.
 
 ### Render 배포
 
-1. 앱 파일을 GitHub 저장소에 추가하고 Render에서 **New → Web Service**로 저장소를 연결합니다.
-2. Runtime은 **Node**, Build Command는 npm install, Start Command는 npm start로 설정합니다.
+1. Render에서 **New → Web Service**로 이 저장소와 main 브랜치를 연결합니다.
+2. Root Directory를 src로 설정하고 Runtime은 **Node**, Build Command는 npm install, Start Command는 npm start로 설정합니다.
 3. Render 서비스의 Environment에 OPENAI_API_KEY를 등록합니다. 필요하면 AI_MODEL, AI_API_URL도 설정합니다.
 4. 배포 후 /healthz에서 {"status":"ok"}를 확인하고 앱의 **고급 기능 → AI API 설정**에서 서버 설정 상태를 확인합니다.
 
@@ -79,7 +79,7 @@ API 키를 HTML이나 GitHub 저장소에 입력하지 마세요.
 | 항목 | 위치 | 상태 |
 | --- | --- | --- |
 | 계획서 | [docs/plan.md](docs/plan.md) | 초안 |
-| 코드 | [src](src/) | 로컬 프로토타입 구현 완료, GitHub 반영 전 |
+| 코드 | [src](src/) | HTML 프로토타입과 Node.js API 중계 서버 반영 완료 |
 | 결과보고서 | [docs/final-report.md](docs/final-report.md) | 작성 예정 |
 | 발표 자료 | [docs/presentation.md](docs/presentation.md) | 작성 예정 |
 | 시연 안내 | [docs/demo.md](docs/demo.md) | 프로토타입 기준으로 갱신 필요 |
@@ -92,15 +92,16 @@ API 키를 HTML이나 GitHub 저장소에 입력하지 마세요.
 
 ## 폴더 구성
 
-현재 저장소에는 계획·보고서 문서와 src/README.md가 있습니다. 앱 파일을 저장소에 추가하면 다음 파일을 배포 루트에 둡니다.
+현재 저장소 구조는 다음과 같습니다. Render의 Root Directory는 src/로 설정합니다.
 
     .
-    ├── DataClinic-보완.html
-    ├── server.mjs
-    ├── package.json
     ├── README.md
     ├── docs/
     └── src/
+        ├── DataClinic-보완.html
+        ├── server.mjs
+        ├── package.json
+        └── README.md
 
 ## 팀 구성
 
