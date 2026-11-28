@@ -37,6 +37,10 @@
   <section id="guide" hidden=""></section>
   <section id="entry" class="entry">
     <div class="intro"><div class="eyebrow">검증 가능한 데이터 전처리</div><h1 id="entry-title">데이터를 올려주세요.</h1><p class="muted">문제를 찾고, 처리 방법과 결과를 비교해 보세요.</p></div>
+    <div class="notice row spread" id="renderAppNotice">
+      <span>AI 안내는 Render 앱에서 사용할 수 있어요.</span>
+      <a class="plain" href="https://two026-dju-oss-ai.onrender.com/">Render에서 AI 안내 사용하기</a>
+    </div>
     <div class="drop" id="drop"><span class="upload-icon" aria-hidden="true">⇧</span><h2>CSV 파일을 여기에 놓거나 선택하세요</h2><p class="muted">여러 파일을 선택하면 첫 파일을 진단하고 나머지는 근거로 조회합니다.</p><button class="primary" id="pick">파일 선택</button><input type="file" id="upload" accept=".csv,text/csv" multiple="" hidden=""><small>브라우저에서 처리 · 최대 6개, 파일 합계 100MB · 파일당 20만 행·150열, 전체 30만 행까지 · 원본은 그대로 유지</small></div>
     <section class="demo-card" aria-labelledby="hackathon-demo">
       <h2 id="hackathon-demo">해커톤 3분 시연</h2>
@@ -2094,6 +2098,7 @@ drop.addEventListener('drop', event => {
   drop.classList.remove('hover');
   void importFiles([...event.dataTransfer.files]);
 });
+$('renderAppNotice').hidden = location.origin === 'https://two026-dju-oss-ai.onrender.com';
 render();
 </script></body></html>
 
