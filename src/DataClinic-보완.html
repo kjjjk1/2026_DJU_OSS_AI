@@ -218,7 +218,7 @@ function classifyHeader(header) {
 function profile(data) {
   if (dataProfiles.has(data)) return dataProfiles.get(data);
   const columns = data.headers.map((name,i) => {
-    const role = data.schema === 'uci-diabetes-130' && /^(age|weight|diag_[123]|payer_code|medical_specialty|max_glu_serum|a1cresult|readmitted)$/i.test(name)
+    const role = data.schema === 'uci-diabetes-130' && /^(age|weight|diag_[123]|admission_type_id|discharge_disposition_id|admission_source_id|payer_code|medical_specialty|max_glu_serum|a1cresult|readmitted)$/i.test(name)
       ? 'category' : classifyHeader(name);
     const counts = new Map();
     const numbers = [];
@@ -264,6 +264,68 @@ function numberStats(values) {
   return {n:values.length,mean:average(values),median:quantile(values,.5),min:values[0],max:values.at(-1),total:sum(values)};
 }
 
+const diabetesColumnDescriptions = Object.freeze({
+  encounter_id:'입원 기록 한 건을 구분하는 고유 번호예요.',
+  patient_nbr:'환자 한 명을 구분하는 번호예요. 같은 환자의 여러 입원에서 반복될 수 있어요.',
+  race:'원자료에 기록된 인종 범주예요.',
+  gender:'원자료에 기록된 성별 범주예요.',
+  age:'입원 시 나이를 10년 단위 구간으로 기록한 값이에요.',
+  weight:'환자의 체중을 구간으로 나누어 기록한 값이에요.',
+  admission_type_id:'응급, 선택 입원 등 입원 유형을 나타내는 분류 코드예요.',
+  discharge_disposition_id:'귀가, 전원 등 퇴원 후 상태를 나타내는 분류 코드예요.',
+  admission_source_id:'응급실, 의뢰 등 입원에 이른 경로를 나타내는 분류 코드예요.',
+  time_in_hospital:'입원일부터 퇴원일까지 병원에 머문 일수예요.',
+  payer_code:'해당 입원의 진료비 지불 주체를 나타내는 코드예요.',
+  medical_specialty:'입원을 담당한 의사의 전문 진료 분야예요.',
+  num_lab_procedures:'해당 입원 중 실시한 검사 건수예요.',
+  num_procedures:'해당 입원 중 검사 외에 실시한 처치 건수예요.',
+  num_medications:'해당 입원 중 투여한 서로 다른 약의 수예요.',
+  number_outpatient:'입원 전 1년간 외래 방문 횟수예요.',
+  number_emergency:'입원 전 1년간 응급실 방문 횟수예요.',
+  number_inpatient:'입원 전 1년간 입원 횟수예요.',
+  diag_1:'첫 번째 진단을 나타내는 분류 코드예요.',
+  diag_2:'두 번째 진단을 나타내는 분류 코드예요.',
+  diag_3:'세 번째 진단을 나타내는 분류 코드예요.',
+  number_diagnoses:'해당 입원에 기록된 진단의 개수예요.',
+  max_glu_serum:'혈당 검사 결과를 구간으로 기록한 값이에요.',
+  a1cresult:'당화혈색소 검사 결과를 구간으로 기록한 값이에요.',
+  change:'해당 입원 중 당뇨병 약의 용량이나 약 종류에 변경이 있었는지 나타내요.',
+  diabetesmed:'해당 입원 중 당뇨병 약이 처방됐는지 나타내요.',
+  readmitted:'퇴원 후 재입원 여부와 30일 기준 재입원 시점을 구분하는 결과예요.'
+});
+const diabetesMedicationColumns = new Set([
+  'metformin','repaglinide','nateglinide','chlorpropamide','glimepiride','acetohexamide','glipizide',
+  'glyburide','tolbutamide','pioglitazone','rosiglitazone','acarbose','miglitol','troglitazone',
+  'tolazamide','examide','citoglipton','insulin','glyburide-metformin','glipizide-metformin',
+  'glimepiride-pioglitazone','metformin-rosiglitazone','metformin-pioglitazone'
+]);
+
+function describeColumn(data, column) {
+  if (data.schema === 'uci-diabetes-130') {
+    const name = column.name.toLowerCase();
+    if (Object.hasOwn(diabetesColumnDescriptions,name)) return diabetesColumnDescriptions[name];
+    if (diabetesMedicationColumns.has(name)) return '해당 입원 중 이 약의 사용 여부와 용량 변화 상태를 나타내요.';
+  }
+  if (data.headers.includes('암호화요양기호') && data.headers.includes('요양기관명')) {
+    if (column.name === '암호화요양기호') return '원자료에서 의료기관을 구분하는 암호화 식별자예요.';
+    if (column.name === '요양기관명') return '원자료에 등록된 기관 이름이에요.';
+    if (column.name === '기관유형') return '병합할 때 각 행이 병원 파일과 약국 파일 중 어디에서 왔는지 표시해요.';
+    if (column.name === '병원홈페이지') return '병원에 등록된 홈페이지 주소예요. 이 항목이 없는 약국에는 해당하지 않아요.';
+    if (column.name === '종별코드') return '의원, 병원, 약국 등 기관의 종별을 나타내는 분류 코드예요.';
+    if (column.name === '종별코드명') return '기관 종별 코드에 대응하는 이름이에요.';
+  }
+  const inferred = {
+    id:'기록이나 대상을 구분하는 값으로 추정돼요.',
+    numeric:'숫자로 기록된 열이에요. 단위와 의미는 원본 설명을 확인하세요.',
+    category:'기록을 여러 종류로 구분하는 열로 추정돼요.',
+    text:'문자열로 기록된 열이에요. 정확한 의미는 원본 설명을 확인하세요.',
+    date:'날짜를 나타내는 열로 추정돼요.',
+    label:'분석에서 결과나 정답으로 사용할 수 있는 열로 추정돼요.',
+    unknown:'관측값이 없어 이 열의 의미를 확인하기 어려워요.'
+  };
+  return inferred[column.type];
+}
+
 function columnProfile(data, type) {
   const labels = {category:'범주형',numeric:'숫자형',id:'식별자',text:'텍스트',date:'날짜',label:'라벨',unknown:'값 없음',rows:'행 데이터',columns:'컬럼 목록'};
   let heading = labels[type] + ' 컬럼과 값';
@@ -273,9 +335,9 @@ function columnProfile(data, type) {
     tableHtml = table(data,[],10);
   } else if (type === 'columns') {
     heading = '전체 컬럼과 데이터 유형';
-    tableHtml = '<div class="table-wrap" style="max-height:65vh"><table><thead><tr><th>컬럼</th><th>유형</th><th>빈 값</th><th>값 예시</th></tr></thead><tbody>' +
+    tableHtml = '<div class="table-wrap" style="max-height:65vh"><table><thead><tr><th>컬럼</th><th>유형</th><th>빈 값</th><th>컬럼 설명</th></tr></thead><tbody>' +
       profile(data).map(c => '<tr><th scope="row">' + E(c.name) + '</th><td>' + labels[c.type] + '</td><td>' + c.missing.toLocaleString('ko-KR') + '</td><td class="profile-values">' +
-        [...c.counts.keys()].slice(0,5).map(E).join(' · ') + '</td></tr>').join('') + '</tbody></table></div>';
+        E(describeColumn(data,c)) + '</td></tr>').join('') + '</tbody></table></div>';
   } else {
     const rows = profile(data).filter(c => c.type === type).map(c => {
       const values = [...c.counts].sort((a,b) => b[1]-a[1]);
@@ -285,7 +347,9 @@ function columnProfile(data, type) {
     }).join('');
     tableHtml = '<div class="table-wrap" style="max-height:65vh"><table><thead><tr><th>컬럼</th><th>서로 다른 값</th><th>빈 값</th><th>' + (type === 'numeric' ? '수치 요약' : '값과 건수') + '</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4">해당 컬럼이 없습니다.</td></tr>') + '</tbody></table></div>';
   }
-  return '<dialog id="columnProfileDialog-' + type + '" aria-labelledby="profileTitle-' + type + '"><div class="dialog-head row spread"><div><h2 id="profileTitle-' + type + '">' + heading + '</h2><small>이 데이터에서 확인한 실제 컬럼과 값을 보여줍니다.</small></div><button type="button" data-close-profile="' + type + '">닫기</button></div><div class="dialog-body">' + tableHtml + '</div></dialog>';
+  return '<dialog id="columnProfileDialog-' + type + '" aria-labelledby="profileTitle-' + type + '"><div class="dialog-head row spread"><div><h2 id="profileTitle-' + type + '">' + heading + '</h2>' + (type === 'columns' ? '<small>컬럼이 무엇을 기록하는지 한 문장으로 설명합니다.</small>' +
+      (data.schema === 'uci-diabetes-130' ? ' <a href="https://archive.ics.uci.edu/dataset/296/diabetes-130-us-hospitals-for-years-1999-2008" target="_blank" rel="noopener noreferrer">UCI 데이터 사전</a>' : '')
+      : '<small>이 데이터에서 확인한 실제 컬럼과 값을 보여줍니다.</small>') + '</div><button type="button" data-close-profile="' + type + '">닫기</button></div><div class="dialog-body">' + tableHtml + '</div></dialog>';
 }
 
 function dataOverview(data, diagnosis) {
@@ -1405,6 +1469,9 @@ function renderReview(data, result) {
   const advice = adviceFor(data,issue);
   const lesson = issueLesson(issue);
   const suggestion = issue.options.find(option => option.id === advice.id);
+  const optionNote = data.schema === 'uci-diabetes-130' && issue.key.startsWith('outlier-')
+    ? '<p class="notice">통계상 드문 값도 실제 입원 기록일 수 있어요. 입력 오류가 확인되지 않았으므로 현재 값을 유지하거나 검토 대상만 표시할 수 있어요.</p>'
+    : '';
   const relabel = option.id === 'relabel' ? '<div class="row action-row"><label class="field">대상 행<select id="labelRow">' +
     option.ids.map(id => '<option value="' + id + '"' + (state.labelRow === id ? ' selected' : '') + '>' + id + '</option>').join('') +
     '</select></label><label class="field">확인한 라벨<input id="labelEdit" maxlength="80" value="' + E(state.labelEdit) +
@@ -1417,7 +1484,7 @@ function renderReview(data, result) {
     '<p><strong>' + E(suggestion?.text || '원자료 확인하기') + '</strong> · ' + E(advice.why) + '</p>' +
     (suggestion && suggestion !== option ? '<button type="button" data-select-option="' + E(suggestion.id) + '">추천 방법 미리보기</button>' : '') +
     aiBlock('review',issue) + '</section>' +
-    '<div class="split action-row"><section class="panel"><h2>어떻게 처리할까요?</h2><p class="muted">아래 방법을 고르면 결과를 먼저 볼 수 있어요.</p><div class="decision">' +
+    '<div class="split action-row"><section class="panel"><h2>어떻게 처리할까요?</h2><p class="muted">아래 방법을 고르면 결과를 먼저 볼 수 있어요.</p>' + optionNote + '<div class="decision">' +
     issue.options.map(o => '<label class="choice"><input type="radio" name="choice" data-option value="' + E(o.id) + '"' +
     (o === option ? ' checked' : '') + '><span><strong>' + E(o.text) + '</strong>' +
     '<small>' + E(optionDescription(o,issue)) + '</small></span></label>').join('') +
