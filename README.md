@@ -2,124 +2,79 @@
 
 **AI 기반 데이터 정제 의사결정 지원 서비스**
 
-> CSV 데이터의 품질을 진단하고, 사용자가 근거를 확인한 뒤 전처리 방법을 선택하도록 돕는 프로토타입입니다.
+[바로 시연하기 · GitHub Pages](https://kjjjk1.github.io/2026_DJU_OSS_AI/)  
+[AI 안내가 포함된 시연 · Render](https://two026-dju-oss-ai.onrender.com/)
 
-## 프로젝트 소개
+## 문제와 해결 방법
 
-데이터 분석 경험이 적으면 결측치나 이상 후보를 발견해도 어떻게 처리할지 판단하기 어렵습니다. DataClinic은 데이터의 문제 후보와 처리 방법별 영향을 보여주고, AI가 추천 근거와 주의사항을 설명합니다. 실제 정제 방법은 사용자가 직접 선택합니다.
+데이터에서 빈 값이나 이상 후보를 발견해도, 바로 삭제하거나 대체해도 되는지 판단하기 어렵습니다. 예를 들어 전체 의료기관 수를 집계할 때 홈페이지가 없는 병원을 제외하면, 실제로 집계해야 할 기관까지 빠집니다.
 
-## 현재 구현된 기능
+DataClinic은 CSV에서 검토할 문제를 찾고, 처리 방법에 따라 행 수·결측률·주요 통계·라벨 분포가 어떻게 달라지는지 적용 전에 보여줍니다. **AI는 선택의 근거를 설명하고, 시스템은 처리 결과를 계산하며, 사용자는 실제로 적용할 방법을 승인합니다.** 승인 기준과 입력한 사유는 이력에 남고, 결과와 재실행 코드를 내보낼 수 있습니다.
+
+## 주요 기능과 활용 기술
 
 | 기능 | 구현 내용 |
 | --- | --- |
-| 데이터 불러오기 | CSV 업로드와 예시 데이터로 시작 |
-| 품질 진단 | 결측값, 중복·충돌 행, 수치형 이상 후보 등을 확인 |
-| 처리 방법 비교 | 방법별 예상 행 수와 주요 통계 변화(What-if)를 비교 |
-| AI 안내 | 진단 요약과 통계에 기반해 데이터 설명, 확인 순서, 처리 방법의 근거와 위험을 안내 |
-| 사용자 결정 | 사용자가 처리 방법을 선택하고 승인한 뒤 결과를 확인·내보내기 |
+| CSV 불러오기 | UTF-8 및 Windows CP949 CSV를 브라우저에서 읽습니다. |
+| 병원·약국 명부 병합 | 병합 전에 원본별 행 수, 공통 열, 식별자 중복 여부를 확인합니다. 승인하면 기관유형을 붙여 한 목록으로 합칩니다. |
+| 데이터 품질 진단 | 결측값, 중복·충돌 행, 형식·범위 위반, 수치형 이상 후보를 표시합니다. |
+| 분석 목적 설정 | 빅데이터 분석, 지도학습, 일부 라벨 보유, 비지도학습을 선택할 수 있습니다. 지도학습과 일부 라벨 보유 모드에서는 라벨 열을 지정할 수 있습니다. |
+| 처리 전 결과 비교 | 처리안별 행 수, 결측률, 수치 통계와 해당하는 경우 라벨 분포를 비교합니다. |
+| AI 안내 | 진단 요약과 처리 방법별 계산 결과를 바탕으로 확인 순서, 추천 근거, 주의사항을 설명합니다. |
+| 승인·복원·내보내기 | 승인과 복원 내역을 기록하고, 결과 CSV·검증 기록 JSON·재실행 코드를 내보냅니다. |
 
-현재 프로토타입은 CSV를 지원합니다. Excel 파일 업로드와 pandas·Streamlit 기반 구현은 현재 실행 버전에 포함되어 있지 않습니다.
+화면과 데이터 진단에는 HTML·CSS·JavaScript를 사용합니다. CSV 읽기와 전처리 계산은 브라우저에서 수행합니다. AI 안내를 요청하면 Node.js 서버가 컬럼명, 진단 근거, 집계 통계 등 요약 정보를 OpenAI 호환 Chat Completions API로 전달합니다. API 키는 서버 환경 변수로 관리합니다.
 
-## AI API 연동
+## 실행 방법
 
-AI 안내는 OpenAI 호환 **Chat Completions API**를 사용합니다. 브라우저는 같은 앱의 Node.js 서버인 /api/ai에 요청하고, 서버가 API 제공자에게 요청을 전달합니다. API 키는 서버 환경 변수에만 저장되며 HTML이나 브라우저에 전달되지 않습니다.
+### 공개 시연
 
-AI 요청에는 원본 CSV 파일과 원본 행 전체가 포함되지 않습니다. 대신 컬럼명, 문제 설명·근거 문구, 진단 결과와 집계 통계가 전송됩니다. API 제공자와 모델은 서버 환경 변수로 설정합니다.
+1. **병원·약국 CSV 선택**을 누르고 병원 CSV와 약국 CSV를 한 개씩 선택합니다.
+2. 원본별 행 수와 식별자 중복 여부를 검토하고 **병합 승인 후 분석**을 누릅니다.
+3. 검토 목록에서 **병원홈페이지**를 열고, 빈 값이 있는 병원 행을 제외하는 방법과 표시만 추가하는 방법을 비교합니다. 약국은 병원 홈페이지 항목이 **해당 없음**으로 처리됩니다.
+4. 기관 수 집계에 맞는 방법을 선택하고 승인 이력과 결과를 확인합니다.
 
-| 환경 변수 | 필수 | 기본값 / 설명 |
-| --- | --- | --- |
-| OPENAI_API_KEY | 예 | 서버에 저장할 API 키 |
-| AI_MODEL | 아니요 | gpt-4o-mini |
-| AI_API_URL | 아니요 | https://api.openai.com/v1/chat/completions |
-| AI_MAX_REQUESTS_PER_MINUTE | 아니요 | IP별 분당 요청 상한, 기본값 12 |
+2026년 9월 시연 파일에서는 병원 **79,899행**과 약국 **25,850행**이 합쳐집니다. 홈페이지가 없는 병원 행을 모두 제외하면 **34,681행**이 남고, 표시만 추가하면 **105,749행**을 유지합니다. 자세한 순서는 [시연 안내](docs/demo.md)를 참고하세요.
 
-다른 OpenAI 호환 제공자를 이용할 때는 AI_API_URL, AI_MODEL, OPENAI_API_KEY를 해당 제공자 값으로 설정합니다. 실제 사용량과 과금은 API 제공자 계정에 적용됩니다.
-
-## 서비스 이용 흐름
-
-CSV 업로드 또는 예시 선택 → 분석 목적 입력 → 데이터 품질 진단 → AI 안내와 주의사항 확인 → 처리 방법별 영향 비교 → 사용자 선택 및 승인 → 결과 확인·내보내기
-
-## 기술 구성
-
-| 구분 | 현재 구성 |
-| --- | --- |
-| 화면·진단·전처리 비교 | HTML, CSS, 브라우저 JavaScript |
-| API 중계 서버 | Node.js 20 이상, 기본 제공 HTTP·fetch |
-| AI | OpenAI 호환 Chat Completions API |
-| 입력 데이터 | CSV |
-| 배포 대상 | Render Web Service |
-
-## 실행 및 배포
-
-프로토타입과 Render용 Node.js 서버 파일을 이 저장소의 src/에 반영했습니다.
-
-- [src/DataClinic-보완.html](src/DataClinic-보완.html)
-- [src/server.mjs](src/server.mjs)
-- [src/package.json](src/package.json)
-
-### 로컬 실행
-
-Node.js 20 이상이 필요합니다. 위 세 파일이 있는 폴더에서 PowerShell을 열고 API 키를 환경 변수로 지정한 뒤 npm start를 실행합니다.
-
-- API 키: OPENAI_API_KEY 환경 변수에 지정
-- 기본 주소: http://localhost:3000
-- 다른 API 제공자는 AI_API_URL 환경 변수에 주소 설정
-
-API 키를 HTML이나 GitHub 저장소에 입력하지 마세요.
+AI 안내를 사용할 때는 서버를 시작하기 전에 `OPENAI_API_KEY`에 OpenAI 키를 설정합니다. Gemini를 사용하는 경우 `AI_API_KEY`에 Gemini 키를 설정하고, `AI_MODEL`과 `AI_API_URL`에 사용할 Gemini 모델과 호환 API 주소를 지정합니다.
 
 ### Render 배포
+### Render에서 실행
 
-1. Render에서 **New → Web Service**로 이 저장소와 main 브랜치를 연결합니다.
-2. Root Directory를 src로 설정하고 Runtime은 **Node**, Build Command는 npm install, Start Command는 npm start로 설정합니다.
-3. Render 서비스의 Environment에 OPENAI_API_KEY를 등록합니다. 필요하면 AI_MODEL, AI_API_URL도 설정합니다.
-4. 배포 후 /healthz에서 {"status":"ok"}를 확인하고 앱의 **고급 기능 → AI API 설정**에서 서버 설정 상태를 확인합니다.
+[DataClinic 시연 앱 열기](https://two026-dju-oss-ai.onrender.com/)
 
-## 저장소 진행 상태
+1. **병원·약국 CSV 선택**을 눌러 병원과 약국 원본 CSV를 한 개씩 선택합니다.
+2. **병합 기준 검토** 화면에서 행 수와 처리 기준을 확인하고 **병합 승인 후 분석**을 누릅니다.
+3. 검토 목록에서 **병원홈페이지**를 열고, 결측 행 제외와 표시 추가의 결과를 비교합니다.
+4. **AI 안내**에서 추천 근거와 주의사항을 확인한 뒤, 적용할 방법을 직접 승인합니다.
+5. 승인 이력을 확인하고 결과 CSV를 내보냅니다.
 
-| 항목 | 위치 | 상태 |
-| --- | --- | --- |
-| 계획서 | [docs/plan.md](docs/plan.md) | 초안 |
-| 코드 | [src](src/) | HTML 프로토타입과 Node.js API 중계 서버 반영 완료 |
-| 결과보고서 | [docs/final-report.md](docs/final-report.md) | 작성 예정 |
-| 발표 자료 | [docs/presentation.md](docs/presentation.md) | 작성 예정 |
-| 시연 안내 | [docs/demo.md](docs/demo.md) | 프로토타입 기준으로 갱신 필요 |
+| 항목 | 설정 |
+| --- | --- |
+| 서비스 유형 | Web Service |
+| 브랜치 | `main` |
+| Root Directory | `src` |
+| Runtime | Node |
+| Build Command | `npm install` |
+| Start Command | `npm start` |
+| Health Check Path | `/healthz` |
 
-## 프로토타입 시연
+API 키는 Render의 **Environment Variables**에 등록합니다. 배포 후 앱에서 **AI 안내**를 실행해 실제 응답을 확인합니다.
 
-- 서비스 접속 주소: Render 배포 후 등록
-- 시연 영상: 촬영 후 등록
-- 시연 시나리오: [docs/demo.md](docs/demo.md)
+## 계획서 · 최종 보고서 · 발표 · 시연
 
-## 폴더 구성
+| 자료 | 링크 |
+| --- | --- |
+| 계획서 | [프로젝트 계획서 초안](docs/plan.md) |
+| 코드 | [앱과 API 서버](src/) |
+| 최종 보고서 | [최종 결과보고서](docs/final-report.md) |
+| 발표 자료 | [발표 구성안](docs/presentation.md) |
+| 시연 | [시연 안내](docs/demo.md) · [GitHub Pages](https://kjjjk1.github.io/2026_DJU_OSS_AI/) · [Render](https://two026-dju-oss-ai.onrender.com/) |
 
-현재 저장소 구조는 다음과 같습니다. Render의 Root Directory는 src/로 설정합니다.
+## 출처와 라이선스
 
-    .
-    ├── README.md
-    ├── docs/
-    └── src/
-        ├── DataClinic-보완.html
-        ├── server.mjs
-        ├── package.json
-        └── README.md
-
-## 팀 구성
-
-| 팀원 | 역할 | 담당 내용 |
-| --- | --- | --- |
-| 팀원1 (이름 입력 예정) | 데이터 진단 및 전처리 | 진단 기준, 처리 방법, 결과 영향 비교 |
-| 팀원2 (이름 입력 예정) | AI 연동 및 의사결정 지원 | API 연동, 추천 근거와 위험 안내 |
-| 팀원3 (이름 입력 예정) | 웹 서비스 및 배포 | 사용자 화면, Node.js 서버, 시각화 및 Render 배포 |
-
-## 제출 전 확인
-
-- [ ] 앱 파일을 GitHub 저장소에 반영하고 실행 방법을 확인
-- [ ] Render 배포와 시연 링크 등록
-- [ ] API 키, 비밀번호, 개인정보가 코드·저장소·화면에 포함되지 않았는지 확인
-- [ ] 로그아웃 상태에서 시연 링크 접근 확인
-- [ ] 보고서·발표 자료·시연 안내 갱신
-- [ ] 자료 출처와 라이선스 기록
-
-## 참고 자료 및 라이선스
-
-사용한 자료의 출처, 데이터 이용 조건, 외부 코드의 라이선스를 기록합니다. 프로젝트 라이선스는 추후 정합니다.
+- **병원·약국 시연 데이터** · 2026년 9월 병원정보서비스 및 약국정보서비스 CSV를 사용했습니다. 원본 파일은 사용자가 직접 불러옵니다.
+- **수치형 이상 후보 기준** · 사분위 범위(IQR)를 사용해 검토 후보를 표시합니다. [NIST 상자 그림 기준](https://www.itl.nist.gov/div898/handbook/eda/section3/boxplot.htm)
+- **AI 연동** · [OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create) · [Gemini의 OpenAI 호환 API](https://ai.google.dev/gemini-api/docs/openai)
+- **실행 환경** · [Node.js 라이선스](https://github.com/nodejs/node/blob/main/LICENSE)
+- **프로젝트 자체 라이선스** · 미정입니다.
