@@ -420,17 +420,27 @@ function missingMethods(data, column, ids) {
   return options;
 }
 
-function outlierMethods(column, ids, validRows, bounds) {
+function outlierMethods(column, ids, validRows, bounds, encounterCount = false) {
   const rowIds = new Set(ids);
   const retained = validRows.filter(row => !rowIds.has(row.id))
     .map(row => readNumber(row.cells[column])).sort((a,b) => a-b);
-  const options = [
-    {id:'keep',text:'현재 값 유지하기'},
-    flagOption(ids,column,'outlier'),
-    {id:'remove',text:'후보 행을 분석에서 빼기',ids,column}
-  ];
-  if (retained.length >= 4 && retained[0] !== retained.at(-1)) {
-    options.splice(2,0,{id:'cap',text:'나머지 값의 범위에 맞추기',ids,column,low:retained[0],high:retained.at(-1)});
+  const options = [{id:'keep',text:'현재 값 유지하기'}];
+  if (encounterCount && retained.length >= 4) {
+    for (const [id,text,calculated] of [
+      ['mean','후보 값을 평균으로 대체하기',average(retained)],
+      ['fill','후보 값을 중앙값으로 대체하기',quantile(retained,.5)]
+    ]) {
+      if (!Number.isFinite(calculated)) continue;
+      const value = Math.round(calculated);
+      options.push({...replacement(id,text,ids,column,value),calculated,rounded:value !== calculated});
+    }
+  }
+  options.push(flagOption(ids,column,'outlier'));
+  if (!encounterCount) {
+    if (retained.length >= 4 && retained[0] !== retained.at(-1)) {
+      options.push({id:'cap',text:'나머지 값의 범위에 맞추기',ids,column,low:retained[0],high:retained.at(-1)});
+    }
+    options.push({id:'remove',text:'후보 행을 분석에서 빼기',ids,column});
   }
   const {n, q1, q3, iqr, lower, upper} = bounds;
   const evidence = '유효한 수치 ' + n + '개 중 ' + ids.length + '개가 검토 후보입니다. Q1 '
@@ -471,6 +481,11 @@ function optionDescription(option, issue) {
   if (option.id === 'remove') return '해당 기록 전체를 현재 결과에서 제외해요. 같은 행의 다른 값도 분석에서 빠져요.';
   if (option.id === 'fill' || option.id === 'mean') {
     const median = option.id === 'fill';
+    if (issue.key.startsWith('outlier-')) {
+      return '검토 후보를 제외한 값의 ' + (median ? '중앙값' : '평균') + '은 ' + displayNumber(option.calculated) +
+        '이에요. ' + (option.rounded ? '정수 단위에 맞춰 반올림한 ' : '') +
+        displayNumber(Number(option.value)) + '로 후보 값만 바꿉니다. 실제 기록과 다를 수 있는 추정값이에요.';
+    }
     const source = median ? '관측값을 순서대로 놓았을 때 가운데 값은 ' : '관측값의 평균은 ';
     const caution = median ? '아주 크거나 작은 값의 영향을 덜 받아요.' : '유난히 크거나 작은 값이 평균을 끌어당길 수 있어요.';
     return source + displayNumber(option.calculated) + '입니다. ' +
@@ -718,10 +733,15 @@ function inspect(data, cutoff) {
   }
   for (const [i,{ids,validRows,bounds}] of outliers) {
     counts[0] += ids.length;
-    const {options,evidence} = outlierMethods(i,ids,validRows,bounds);
+    const countColumn = /^(time_in_hospital|num_lab_procedures|num_procedures|num_medications|number_outpatient|number_emergency|number_inpatient|number_diagnoses)$/i.test(headers[i]);
+    const countValues = encounterData && countColumn && validRows.every(row => {
+      const n = readNumber(row.cells[i]);
+      return Number.isInteger(n) && n >= 0;
+    });
+    const {options,evidence} = outlierMethods(i,ids,validRows,bounds,countValues);
     add('outlier-' + i,'분포에서 벗어난 값 · ' + headers[i],
       evidence + (encounterData ? ' 입원 특성과 같은 유형의 기록을 확인하세요.' : ''),
-      encounterData ? options.filter(option => ['keep','flag'].includes(option.id)) : options,ids,i);
+      encounterData ? options.filter(option => ['keep','flag','mean','fill'].includes(option.id)) : options,ids,i);
   }
   for (const [i,ids] of missing) {
     add('missing-' + i,(encounterData ? '결측 또는 미기록 값 · ' : '값이 비어 있어요 · ') + headers[i],
@@ -1137,6 +1157,9 @@ function impactSentence(data, issue, rule, after) {
   if (removed) return '전체 ' + data.rows.length + '개 기록 중 ' + removed + '개(' + percent(removed,data.rows.length) +
     ')가 빠져요. 이 행에 있던 다른 항목도 함께 빠져요.';
   if (rule.id === 'cap') return rule.ids.length + '개 값을 경계로 조정해요. 보고서나 집계가 원본과 달라질 수 있어요.';
+  if (issue.key.startsWith('outlier-') && (rule.id === 'mean' || rule.id === 'fill')) {
+    return '행은 모두 유지하고, 후보 ' + rule.ids.length + '개를 각각 ' + E(rule.value) + '로 바꿔 비교해요. 대체값은 추정값이에요.';
+  }
   return (rule.ids?.length || 0) + '개 값이 바뀌어요. ' + (rule.id === 'relabel' ? '원자료로 확인한 라벨을 반영해요.' : '원자료 없이 채운 값은 추정값이에요.');
 }
 
@@ -1469,8 +1492,12 @@ function renderReview(data, result) {
   const advice = adviceFor(data,issue);
   const lesson = issueLesson(issue);
   const suggestion = issue.options.find(option => option.id === advice.id);
+  const canCompareSubstitution = issue.options.some(item => item.id === 'mean' || item.id === 'fill');
   const optionNote = data.schema === 'uci-diabetes-130' && issue.key.startsWith('outlier-')
-    ? '<p class="notice">통계상 드문 값도 실제 입원 기록일 수 있어요. 입력 오류가 확인되지 않았으므로 현재 값을 유지하거나 검토 대상만 표시할 수 있어요.</p>'
+    ? '<p class="notice">통계상 드문 값도 실제 입원 기록일 수 있어요. ' +
+      (canCompareSubstitution
+        ? '평균·중앙값 대체를 선택하면 승인 전에 값과 통계가 어떻게 달라지는지 비교할 수 있어요.'
+        : '현재 값을 유지하거나 검토 표시를 추가할 수 있어요.') + '</p>'
     : '';
   const relabel = option.id === 'relabel' ? '<div class="row action-row"><label class="field">대상 행<select id="labelRow">' +
     option.ids.map(id => '<option value="' + id + '"' + (state.labelRow === id ? ' selected' : '') + '>' + id + '</option>').join('') +
